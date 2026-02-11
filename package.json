@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node --watch -r ts-node/register src/server.ts"
+    "dev": "node --watch -r ts-node/register src/server.ts",
+    "generate-types": "openapi-typescript ./node_modules/@popbojan/task-manager-contract/openapi.yaml -o ./src/types/api.ts"
   },
   "repository": {
     "type": "git",
@@ -20,10 +21,14 @@
   "homepage": "https://github.com/popbojan/my-task-manager-backend#readme",
   "dependencies": {
     "@fastify/cors": "^11.2.0",
+    "@fastify/swagger": "^9.7.0",
+    "@fastify/swagger-ui": "^5.2.5",
+    "@popbojan/task-manager-contract": "github:popbojan/my-task-manager-spec",
     "fastify": "^5.7.4"
   },
   "devDependencies": {
     "@types/node": "^25.2.3",
+    "openapi-typescript": "^7.12.0",
     "prisma": "^7.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
