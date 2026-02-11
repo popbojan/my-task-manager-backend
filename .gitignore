@@ -1,0 +1,20 @@
+# Abhängigkeiten
+node_modules/
+dist/
+build/
+
+# Umgebungsvariablen (WICHTIG!)
+.env
+.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Mac-Systemdateien
+.DS_Store
+
+# Prisma (falls du es nutzt)
+/prisma/migrations/
+
