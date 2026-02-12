@@ -1,11 +1,27 @@
+import "dotenv/config";
 import Fastify from 'fastify';
-import { authRoutes } from './adapters/driving/web/auth.route';
+import { AuthService } from "./domain/auth/auth.service";
+import { NodemailerMailAdapter } from "./adapters/driven/mail/nodemailer.mail.adapter";
+import { authRoutes } from "./adapters/driving/web/auth.route";
 
 const fastify = Fastify({
   logger: true
 });
 
-fastify.register(authRoutes, { prefix: '/auth' });
+const mailAdapter = new NodemailerMailAdapter({
+  host: process.env.SMTP_HOST!,
+  port: Number(process.env.SMTP_PORT),
+  secure: process.env.SMTP_SECURE === "true",
+  user: process.env.SMTP_USER!,
+  pass: process.env.SMTP_PASS!,
+  from: process.env.MAIL_FROM!,
+});
+
+const authService = new AuthService(mailAdapter);
+
+await fastify.register(authRoutes, {
+  authService,
+});
 
 const start = async () => {
   try {
