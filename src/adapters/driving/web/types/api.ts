@@ -60,7 +60,7 @@ export interface components {
         };
         AuthTokenResponse: {
             /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
-            accessToken?: string;
+            accessToken: string;
         };
         ErrorResponse: {
             /** @example 400 */
