@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
-import type { components } from "./types/api";
+import type {components, operations} from "./types/api";
 import type { AuthService } from "../../../domain/auth/auth.service";
 
 type OTPRequest = components["schemas"]["OTPRequest"];
@@ -22,10 +22,15 @@ export const authRoutes: FastifyPluginAsync<{
         }
     );
 
-    fastify.post<{ Body: OTPVerifyRequest; Reply: AuthTokenResponse }>(
-        "/auth/verify-otp",
-        async (request, reply) => {
-            const { email, otp } = request.body;
+    type VerifyOtp = operations["verifyOtp"];
+
+    fastify.post<{
+        Body: VerifyOtp["requestBody"]["content"]["application/json"];
+        Reply:
+            | VerifyOtp["responses"][200]["content"]["application/json"]
+            | VerifyOtp["responses"][401]["content"]["application/json"];
+    }>("/auth/verify-otp", async (request, reply) => {
+        const { email, otp } = request.body;
 
             const valid = authService.verifyOtp(email, otp);
             if (!valid) {
