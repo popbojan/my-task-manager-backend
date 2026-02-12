@@ -10,7 +10,7 @@ export class AuthService {
     ) {
     }
 
-    async requestOtp(email: string, purpose: string): Promise<void> {
+    async requestOtp(email: string): Promise<void> {
         // windowStartUnix = start of the current OTP time window (UNIX timestamp in seconds)
         // How it works (simple explanation):
         // We divide the current time by the window size (e.g. 240 seconds = 4 minutes),
@@ -31,35 +31,32 @@ export class AuthService {
 
         const code = this.generateOtp({
             email,
-            purpose,
             windowStartUnix
         });
 
         await this.mailPort.sendOtp(email, code);
     }
 
-    verifyOtp(email: string, purpose: string, otpFromClient: string): boolean {
+    verifyOtp(email: string, otpFromClient: string): boolean {
         const nowUnix = Math.floor(Date.now() / 1000);
         const currentWindowStart =
             Math.floor(nowUnix / WINDOW_SIZE_SEC) * WINDOW_SIZE_SEC;
 
         const expected = this.generateOtp({
             email,
-            purpose,
             windowStartUnix: currentWindowStart
         });
 
-        return expected === otpFromClient;
+        return expected === otpFromClient.trim();
     }
 
     private generateOtp(params: {
         email: string;
-        purpose: string;
         windowStartUnix: number;
     }): string {
 
         const message =
-            `${params.email}|${params.purpose}|${params.windowStartUnix}`;
+            `${params.email}|${params.windowStartUnix}`;
 
         const hmac = createHmac("sha256", OTP_SECRET)
             .update(message)
