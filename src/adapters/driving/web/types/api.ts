@@ -27,7 +27,7 @@ export interface components {
     schemas: {
         OTPRequest: {
             /**
-             * Format: email1
+             * Format: email
              * @example user@example.com
              */
             email: string;
