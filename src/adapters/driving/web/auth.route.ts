@@ -1,39 +1,42 @@
 import type { FastifyPluginAsync } from "fastify";
 import type {components, operations} from "./types/api";
-import type { AuthService } from "../../../domain/auth/auth.service";
+import type { RequestOtpUseCase } from "../../../domain/auth/request-otp.use-case";
+import type {LoginWithOtpUseCase} from "../../../domain/auth/login-with-otp.use-case";
 
 type OTPRequest = components["schemas"]["OTPRequest"];
-type OTPVerifyRequest = components["schemas"]["OTPVerifyRequest"];
-type AuthTokenResponse = components["schemas"]["AuthTokenResponse"];
 
 export const authRoutes: FastifyPluginAsync<{
-    authService: AuthService;
+    requestOtpUseCase: RequestOtpUseCase;
+    loginWithOtpUseCase: LoginWithOtpUseCase;
+
 }> = async (fastify, opts) => {
-    const { authService } = opts;
+    const { requestOtpUseCase } = opts;
+    const { loginWithOtpUseCase } = opts;
 
     fastify.post<{ Body: OTPRequest }>(
         "/auth/request-otp",
         async (request) => {
             const { email } = request.body;
 
-            await authService.requestOtp(email);
+            await requestOtpUseCase.execute(email);
 
             return { message: "OTP sent to your email" };
         }
     );
 
-    type VerifyOtp = operations["verifyOtp"];
+    type LoginWithOtp = operations["loginWithOtp"];
 
     fastify.post<{
-        Body: VerifyOtp["requestBody"]["content"]["application/json"];
+        Body: LoginWithOtp["requestBody"]["content"]["application/json"];
         Reply:
-            | VerifyOtp["responses"][200]["content"]["application/json"]
-            | VerifyOtp["responses"][401]["content"]["application/json"];
-    }>("/auth/verify-otp", async (request, reply) => {
+            | LoginWithOtp["responses"][200]["content"]["application/json"]
+            | LoginWithOtp["responses"][401]["content"]["application/json"];
+    }>("/auth/login-with-otp", async (request, reply) => {
         const { email, otp } = request.body;
 
-            const valid = authService.verifyOtp(email, otp);
-            if (!valid) {
+            const token = await loginWithOtpUseCase.execute(email, otp);
+
+            if (!token) {
                 return reply.code(401).send({
                     statusCode: 401,
                     error: "Unauthorized",
@@ -41,9 +44,7 @@ export const authRoutes: FastifyPluginAsync<{
                 });
             }
 
-            const accessToken = authService.generateAccessToken(email);
-
-            return { accessToken };
+            return reply.code(200).send({ accessToken: token });
         }
     );
 };

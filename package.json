@@ -24,11 +24,13 @@
     "@fastify/cors": "^11.2.0",
     "@fastify/swagger": "^9.7.0",
     "@fastify/swagger-ui": "^5.2.5",
-    "@popbojan/task-manager-contract": "github:popbojan/my-task-manager-spec#v1.0.2",
+    "@popbojan/task-manager-contract": "github:popbojan/my-task-manager-spec#v1.0.3",
     "fastify": "^5.7.4",
+    "jsonwebtoken": "^9.0.3",
     "nodemailer": "^8.0.1"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.2.3",
     "@types/nodemailer": "^7.0.9",
     "openapi-typescript": "^7.12.0",

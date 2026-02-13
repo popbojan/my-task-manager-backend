@@ -21,7 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/verify-otp": {
+    "/auth/login-with-otp": {
         parameters: {
             query?: never;
             header?: never;
@@ -30,8 +30,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Verify OTP and generate access token */
-        post: operations["verifyOtp"];
+        /** Login using an email and the received OTP */
+        post: operations["loginWithOtp"];
         delete?: never;
         options?: never;
         head?: never;
@@ -49,7 +49,7 @@ export interface components {
              */
             email: string;
         };
-        OTPVerifyRequest: {
+        LoginRequest: {
             /**
              * Format: email
              * @example user@example.com
@@ -58,7 +58,7 @@ export interface components {
             /** @example 123456 */
             otp: string;
         };
-        AuthTokenResponse: {
+        LoginResponse: {
             /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
             accessToken: string;
         };
@@ -124,7 +124,7 @@ export interface operations {
             };
         };
     };
-    verifyOtp: {
+    loginWithOtp: {
         parameters: {
             query?: never;
             header?: never;
@@ -133,7 +133,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OTPVerifyRequest"];
+                "application/json": components["schemas"]["LoginRequest"];
             };
         };
         responses: {
@@ -143,7 +143,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuthTokenResponse"];
+                    "application/json": components["schemas"]["LoginResponse"];
                 };
             };
             /** @description Invalid or expired OTP */
