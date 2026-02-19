@@ -11,6 +11,8 @@ import { LoginWithOtpUseCase } from "./domain/auth/login-with-otp.use-case.js";
 import { GenerateOtpActivity } from "./domain/auth/generate-otp.activity.js";
 import { GenerateTokenActivity } from "./domain/auth/generate-token.activity.js";
 
+import cors from '@fastify/cors'
+
 const fastify = Fastify({ logger: true });
 
 // --- Infrastructure ---
@@ -31,6 +33,12 @@ const generateTokenActivity = new GenerateTokenActivity();
 const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);
 const loginWithOtpUseCase = new LoginWithOtpUseCase(generateOtpActivity, generateTokenActivity);
 
+// --- CORS ---
+await fastify.register(cors, {
+  origin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+});
+
 // --- Routes ---
 await fastify.register(authRoutes, {
   requestOtpUseCase,
@@ -39,8 +47,12 @@ await fastify.register(authRoutes, {
 
 const start = async () => {
   try {
-    await fastify.listen({ port: 3001, host: "0.0.0.0" });
-    fastify.log.info("Server is running on http://localhost:3001");
+    const port = Number(process.env.PORT) || 3001;
+    const host = process.env.HOST || "0.0.0.0";
+
+    await fastify.listen({ port, host });
+
+    fastify.log.info(`Server is running on http://${host}:${port}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
