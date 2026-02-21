@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: taskmgr
+      POSTGRES_PASSWORD: taskmgr
+      POSTGRES_DB: taskmgr
+    ports:
+      - "5432:5432"
+    volumes:
+      - taskmgr_pg:/var/lib/postgresql/data
+
+volumes:
+  taskmgr_pg:
