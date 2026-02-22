@@ -15,6 +15,12 @@ import cors from '@fastify/cors'
 
 const fastify = Fastify({ logger: true });
 
+import cookie from "@fastify/cookie";
+import {AuthRefreshUseCase} from "./domain/auth/auth-refresh.use-case";
+import {IssueRefreshTokenActivity} from "./domain/auth/issue-refresh-token.activity";
+import {RevokeRefreshTokenActivity} from "./domain/auth/revoke-refresh-token.activity";
+import {ValidateRefreshTokenActivity} from "./domain/auth/validate-refresh-token.activity";
+
 // --- Infrastructure ---
 const mailAdapter = new NodemailerMailAdapter({
   host: process.env.SMTP_HOST!,
@@ -28,10 +34,16 @@ const mailAdapter = new NodemailerMailAdapter({
 // --- Activities (Domain Services) ---
 const generateOtpActivity = new GenerateOtpActivity();
 const generateTokenActivity = new GenerateTokenActivity();
+const issueRefreshTokenActivity = new IssueRefreshTokenActivity();
+const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity();
+const validateRefreshTokenActivity = new ValidateRefreshTokenActivity();
 
 // --- UseCases ---
 const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);
-const loginWithOtpUseCase = new LoginWithOtpUseCase(generateOtpActivity, generateTokenActivity);
+const loginWithOtpUseCase = new LoginWithOtpUseCase(generateOtpActivity, generateTokenActivity, issueRefreshTokenActivity);
+const authRefreshUseCase = new AuthRefreshUseCase(generateTokenActivity, validateRefreshTokenActivity, issueRefreshTokenActivity, revokeRefreshTokenActivity);
+
+await fastify.register(cookie);
 
 // --- CORS ---
 await fastify.register(cors, {
@@ -43,6 +55,7 @@ await fastify.register(cors, {
 await fastify.register(authRoutes, {
   requestOtpUseCase,
   loginWithOtpUseCase,
+  authRefreshUseCase
 });
 
 const start = async () => {

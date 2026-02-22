@@ -23,12 +23,14 @@
   },
   "homepage": "https://github.com/popbojan/my-task-manager-backend#readme",
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.2.0",
     "@fastify/swagger": "^9.7.0",
     "@fastify/swagger-ui": "^5.2.5",
-    "@popbojan/task-manager-contract": "github:popbojan/my-task-manager-spec#v1.0.3",
+    "@popbojan/task-manager-contract": "github:popbojan/my-task-manager-spec#v1.0.4",
     "@prisma/client": "^7.4.1",
     "fastify": "^5.7.4",
+    "ioredis": "^5.9.3",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^8.0.1"
   },
