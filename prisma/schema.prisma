@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,17 +6,4 @@ datasource db {
   provider = "postgresql"
 }
 
-model RefreshToken {
-  id         String   @id @default(cuid())
-  tokenHash  String   @unique
-  email      String
-  expiresAt  DateTime
-  revokedAt  DateTime?
-  createdAt  DateTime @default(now())
-
-  userAgent  String?
-  ip         String?
-
-  @@index([email])
-  @@index([expiresAt])
-}
+// Später kommen hier z. B. Task, User, usw. rein.

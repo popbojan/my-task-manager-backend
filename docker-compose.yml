@@ -10,5 +10,14 @@ services:
     volumes:
       - taskmgr_pg:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - taskmgr_redis:/data
+
 volumes:
   taskmgr_pg:
+  taskmgr_redis:
