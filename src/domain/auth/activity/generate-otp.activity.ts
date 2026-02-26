@@ -1,4 +1,4 @@
-import type { OtpPort } from "./otp.port";
+import type { OtpPort } from "../port/otp.port";
 
 export class GenerateOtpActivity {
     constructor(private readonly otpPort: OtpPort) {}

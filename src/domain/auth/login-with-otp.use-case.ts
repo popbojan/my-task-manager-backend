@@ -1,6 +1,6 @@
-import type { GenerateOtpActivity } from "./generate-otp.activity.js";
-import type { GenerateTokenActivity } from "./generate-token.activity.js";
-import type { IssueRefreshTokenActivity } from "./issue-refresh-token.activity";
+import type { GenerateOtpActivity } from "./activity/generate-otp.activity";
+import type { GenerateTokenActivity } from "./activity/generate-token.activity";
+import type { IssueRefreshTokenActivity } from "./activity/issue-refresh-token.activity";
 
 export class LoginWithOtpUseCase {
     constructor(

@@ -1,5 +1,5 @@
 import type { Redis } from "ioredis";
-import type {StorePort} from "../../../domain/auth/store-port";
+import type {StorePort} from "../../../domain/auth/port/store-port";
 
 export class RedisStoreAdapter implements StorePort {
     constructor(private readonly redis: Redis) {}
@@ -10,5 +10,9 @@ export class RedisStoreAdapter implements StorePort {
 
     async deleteRefreshToken(hashedToken: string): Promise<void> {
         await this.redis.del(`rt:${hashedToken}`);
+    }
+
+    async getRefreshTokenEmail(hashedToken: string): Promise<string | null> {
+        return this.redis.get(`rt:${hashedToken}`);
     }
 }

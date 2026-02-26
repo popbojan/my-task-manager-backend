@@ -1,7 +1,7 @@
-import type { GenerateTokenActivity } from "./generate-token.activity.js";
-import type { ValidateRefreshTokenActivity } from "./validate-refresh-token.activity";
-import type { IssueRefreshTokenActivity } from "./issue-refresh-token.activity";
-import type { RevokeRefreshTokenActivity } from "./revoke-refresh-token.activity";
+import type { GenerateTokenActivity } from "./activity/generate-token.activity";
+import type { ValidateRefreshTokenActivity } from "./activity/validate-refresh-token.activity";
+import type { IssueRefreshTokenActivity } from "./activity/issue-refresh-token.activity";
+import type { RevokeRefreshTokenActivity } from "./activity/revoke-refresh-token.activity";
 
 export class AuthRefreshUseCase {
     constructor(
@@ -13,8 +13,6 @@ export class AuthRefreshUseCase {
 
     async execute(rawRefreshToken: string): Promise<{ accessToken: string; refreshToken: string; refreshTtlSeconds: number } | null> {
         const { email, refreshTokenHash } = await this.validateRefreshTokenActivity.execute(rawRefreshToken);
-
-        if (!email) return null;
 
         // Rotation
         await this.revokeRefreshTokenActivity.execute(refreshTokenHash);

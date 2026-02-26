@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import type {TokenPort} from "../../../domain/auth/token.port";
+import type {TokenPort} from "../../../domain/auth/port/token.port";
 
 type JwtConfig = {
     secret: jwt.Secret;

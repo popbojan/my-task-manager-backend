@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "crypto";
-import type {CryptoPort} from "../../../domain/auth/crypto-port";
+import type {CryptoPort} from "../../../domain/auth/port/crypto-port";
 
 export class CryptoAdapter implements CryptoPort {
     randomHex(bytes: number): string {

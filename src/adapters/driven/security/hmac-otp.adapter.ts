@@ -1,5 +1,5 @@
 import { createHmac } from "crypto";
-import type { OtpPort } from "../../../domain/auth/otp.port";
+import type { OtpPort } from "../../../domain/auth/port/otp.port";
 
 type OtpConfig = {
     secret: string;

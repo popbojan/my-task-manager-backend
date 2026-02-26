@@ -1,5 +1,5 @@
 import nodemailer, { Transporter } from "nodemailer";
-import type { MailPort } from "../../../domain/auth/mail.port";
+import type { MailPort } from "../../../domain/auth/port/mail.port";
 
 type MailConfig = {
     host: string;

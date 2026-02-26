@@ -1,4 +1,4 @@
-import type { StorePort } from "./store-port";
+import type { StorePort } from "../port/store-port";
 
 export class RevokeRefreshTokenActivity {
     constructor(private readonly store: StorePort) {}

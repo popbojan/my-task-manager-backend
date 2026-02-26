@@ -1,5 +1,5 @@
-import type {MailPort} from "./mail.port";
-import type {GenerateOtpActivity} from "./generate-otp.activity";
+import type {MailPort} from "./port/mail.port";
+import type {GenerateOtpActivity} from "./activity/generate-otp.activity";
 
 export class RequestOtpUseCase {
     constructor(

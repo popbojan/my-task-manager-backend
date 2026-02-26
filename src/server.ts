@@ -8,8 +8,8 @@ import { MailerAdapter } from "./adapters/driven/mail/mailer.adapter";
 import { RequestOtpUseCase } from "./domain/auth/request-otp.use-case.js";
 import { LoginWithOtpUseCase } from "./domain/auth/login-with-otp.use-case.js";
 
-import { GenerateOtpActivity } from "./domain/auth/generate-otp.activity.js";
-import { GenerateTokenActivity } from "./domain/auth/generate-token.activity.js";
+import { GenerateOtpActivity } from "./domain/auth/activity/generate-otp.activity";
+import { GenerateTokenActivity } from "./domain/auth/activity/generate-token.activity";
 
 import cors from '@fastify/cors'
 
@@ -17,9 +17,9 @@ const fastify = Fastify({ logger: true });
 
 import cookie from "@fastify/cookie";
 import { AuthRefreshUseCase } from "./domain/auth/auth-refresh.use-case";
-import { IssueRefreshTokenActivity } from "./domain/auth/issue-refresh-token.activity";
-import { RevokeRefreshTokenActivity } from "./domain/auth/revoke-refresh-token.activity";
-import { ValidateRefreshTokenActivity } from "./domain/auth/validate-refresh-token.activity";
+import { IssueRefreshTokenActivity } from "./domain/auth/activity/issue-refresh-token.activity";
+import { RevokeRefreshTokenActivity } from "./domain/auth/activity/revoke-refresh-token.activity";
+import { ValidateRefreshTokenActivity } from "./domain/auth/activity/validate-refresh-token.activity";
 import { JwtTokenAdapter } from "./adapters/driven/security/jwt-token.adapter";
 import { HmacOtpAdapter } from "./adapters/driven/security/hmac-otp.adapter";
 
@@ -57,7 +57,7 @@ const generateOtpActivity = new GenerateOtpActivity(otpPort);
 const generateTokenActivity = new GenerateTokenActivity(tokenPort);
 const issueRefreshTokenActivity = new IssueRefreshTokenActivity(cryptoPort, redisStore);
 const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity(redisStore);
-const validateRefreshTokenActivity = new ValidateRefreshTokenActivity();
+const validateRefreshTokenActivity = new ValidateRefreshTokenActivity(cryptoPort, redisStore);
 
 // --- UseCases ---
 const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);

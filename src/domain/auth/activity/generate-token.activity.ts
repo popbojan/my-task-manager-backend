@@ -1,4 +1,4 @@
-import type { TokenPort } from "./token.port";
+import type { TokenPort } from "../port/token.port";
 
 export class GenerateTokenActivity {
     constructor(private readonly tokenPort: TokenPort) {}
