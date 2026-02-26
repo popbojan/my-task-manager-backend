@@ -1,10 +1,9 @@
-import { redis } from "../../conf/redis";
+import type { StorePort } from "./store-port";
 
-//TODO: to be refactored to move storage functionality out of the domain
 export class RevokeRefreshTokenActivity {
+    constructor(private readonly store: StorePort) {}
 
-    async execute(refreshTokenHash: string) {
-        await redis.del(`rt:${refreshTokenHash}`);
+    async execute(refreshTokenHash: string): Promise<void> {
+        await this.store.deleteRefreshToken(refreshTokenHash);
     }
-
 }

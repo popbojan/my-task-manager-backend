@@ -56,7 +56,7 @@ const redisStore = new RedisStoreAdapter(redis);
 const generateOtpActivity = new GenerateOtpActivity(otpPort);
 const generateTokenActivity = new GenerateTokenActivity(tokenPort);
 const issueRefreshTokenActivity = new IssueRefreshTokenActivity(cryptoPort, redisStore);
-const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity();
+const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity(redisStore);
 const validateRefreshTokenActivity = new ValidateRefreshTokenActivity();
 
 // --- UseCases ---

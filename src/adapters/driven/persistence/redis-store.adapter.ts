@@ -7,4 +7,8 @@ export class RedisStoreAdapter implements StorePort {
     async saveRefreshToken(hashedToken: string, email: string, ttlSeconds: number): Promise<void> {
         await this.redis.set(`rt:${hashedToken}`, email, "EX", ttlSeconds);
     }
+
+    async deleteRefreshToken(hashedToken: string): Promise<void> {
+        await this.redis.del(`rt:${hashedToken}`);
+    }
 }
