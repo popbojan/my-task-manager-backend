@@ -3,7 +3,7 @@ import Fastify from "fastify";
 
 import { authRoutes } from "./adapters/driving/web/auth.route.js";
 
-import { NodemailerMailAdapter } from "./adapters/driven/mail/nodemailer.mail.adapter.js";
+import { MailerAdapter } from "./adapters/driven/mail/mailer.adapter";
 
 import { RequestOtpUseCase } from "./domain/auth/request-otp.use-case.js";
 import { LoginWithOtpUseCase } from "./domain/auth/login-with-otp.use-case.js";
@@ -20,9 +20,11 @@ import {AuthRefreshUseCase} from "./domain/auth/auth-refresh.use-case";
 import {IssueRefreshTokenActivity} from "./domain/auth/issue-refresh-token.activity";
 import {RevokeRefreshTokenActivity} from "./domain/auth/revoke-refresh-token.activity";
 import {ValidateRefreshTokenActivity} from "./domain/auth/validate-refresh-token.activity";
+import {JwtTokenAdapter} from "./adapters/driven/security/jwt-token.adapter";
+import {HmacOtpAdapter} from "./adapters/driven/security/hmac-otp.adapter";
 
 // --- Infrastructure ---
-const mailAdapter = new NodemailerMailAdapter({
+const mailAdapter = new MailerAdapter({
   host: process.env.SMTP_HOST!,
   port: Number(process.env.SMTP_PORT),
   secure: process.env.SMTP_SECURE === "true",
@@ -31,9 +33,21 @@ const mailAdapter = new NodemailerMailAdapter({
   from: process.env.MAIL_FROM!,
 });
 
+const tokenPort = new JwtTokenAdapter({
+  secret: process.env.JWT_SECRET!,
+  expiresIn: "60m",
+  algorithm: "HS256",
+});
+
+const otpPort = new HmacOtpAdapter({
+  secret: process.env.OTP_SECRET!,
+  windowSizeSec: 240,
+  digits: 6,
+});
+
 // --- Activities (Domain Services) ---
-const generateOtpActivity = new GenerateOtpActivity();
-const generateTokenActivity = new GenerateTokenActivity();
+const generateOtpActivity = new GenerateOtpActivity(otpPort);
+const generateTokenActivity = new GenerateTokenActivity(tokenPort);
 const issueRefreshTokenActivity = new IssueRefreshTokenActivity();
 const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity();
 const validateRefreshTokenActivity = new ValidateRefreshTokenActivity();

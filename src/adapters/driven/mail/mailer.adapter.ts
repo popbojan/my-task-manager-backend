@@ -10,7 +10,7 @@ type MailConfig = {
     from: string;
 };
 
-export class NodemailerMailAdapter implements MailPort {
+export class MailerAdapter implements MailPort {
     private transporter: Transporter;
     private from: string;
 
