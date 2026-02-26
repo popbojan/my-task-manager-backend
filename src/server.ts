@@ -16,12 +16,16 @@ import cors from '@fastify/cors'
 const fastify = Fastify({ logger: true });
 
 import cookie from "@fastify/cookie";
-import {AuthRefreshUseCase} from "./domain/auth/auth-refresh.use-case";
-import {IssueRefreshTokenActivity} from "./domain/auth/issue-refresh-token.activity";
-import {RevokeRefreshTokenActivity} from "./domain/auth/revoke-refresh-token.activity";
-import {ValidateRefreshTokenActivity} from "./domain/auth/validate-refresh-token.activity";
-import {JwtTokenAdapter} from "./adapters/driven/security/jwt-token.adapter";
-import {HmacOtpAdapter} from "./adapters/driven/security/hmac-otp.adapter";
+import { AuthRefreshUseCase } from "./domain/auth/auth-refresh.use-case";
+import { IssueRefreshTokenActivity } from "./domain/auth/issue-refresh-token.activity";
+import { RevokeRefreshTokenActivity } from "./domain/auth/revoke-refresh-token.activity";
+import { ValidateRefreshTokenActivity } from "./domain/auth/validate-refresh-token.activity";
+import { JwtTokenAdapter } from "./adapters/driven/security/jwt-token.adapter";
+import { HmacOtpAdapter } from "./adapters/driven/security/hmac-otp.adapter";
+
+import { redis } from "./conf/redis";
+import { CryptoAdapter } from "./adapters/driven/security/crypto.adapter";
+import { RedisStoreAdapter } from "./adapters/driven/persistence/redis-store.adapter";
 
 // --- Infrastructure ---
 const mailAdapter = new MailerAdapter({
@@ -45,10 +49,13 @@ const otpPort = new HmacOtpAdapter({
   digits: 6,
 });
 
+const cryptoPort = new CryptoAdapter();
+const redisStore = new RedisStoreAdapter(redis);
+
 // --- Activities (Domain Services) ---
 const generateOtpActivity = new GenerateOtpActivity(otpPort);
 const generateTokenActivity = new GenerateTokenActivity(tokenPort);
-const issueRefreshTokenActivity = new IssueRefreshTokenActivity();
+const issueRefreshTokenActivity = new IssueRefreshTokenActivity(cryptoPort, redisStore);
 const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity();
 const validateRefreshTokenActivity = new ValidateRefreshTokenActivity();
 
