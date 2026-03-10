@@ -52,6 +52,7 @@ export const authRoutes: FastifyPluginAsync<{
     );
 
     type RefreshOp = operations["refreshAccessToken"];
+
     fastify.post<{
         Reply:
             | RefreshOp["responses"][200]["content"]["application/json"]
@@ -67,24 +68,24 @@ export const authRoutes: FastifyPluginAsync<{
             });
         }
 
-        const result = await authRefreshUseCase.execute(raw);
+        try {
+            const result = await authRefreshUseCase.execute(raw);
 
-        if (!result) {
+            reply.setCookie("refreshToken", result.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                path: "/auth/refresh",
+                maxAge: result.refreshTtlSeconds,
+            });
+
+            return reply.code(200).send({ accessToken: result.accessToken });
+        } catch (error) {
             return reply.code(401).send({
                 statusCode: 401,
                 error: "Unauthorized",
                 message: "Invalid or expired refresh token",
             });
         }
-
-        reply.setCookie("refreshToken", result.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/auth/refresh",
-            maxAge: result.refreshTtlSeconds,
-        });
-
-        return reply.code(200).send({ accessToken: result.accessToken });
     });
 };
