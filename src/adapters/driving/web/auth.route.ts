@@ -37,19 +37,28 @@ export const authRoutes: FastifyPluginAsync<{
     }>("/auth/login-with-otp", async (request, reply) => {
         const { email, otp } = request.body;
 
-            const token = await loginWithOtpUseCase.execute(email, otp);
+        const tokens = await loginWithOtpUseCase.execute(email, otp);
 
-            if (!token) {
-                return reply.code(401).send({
-                    statusCode: 401,
-                    error: "Unauthorized",
-                    message: "Invalid or expired OTP",
-                });
-            }
-
-            return reply.code(200).send({ accessToken: token });
+        if (!tokens) {
+            return reply.code(401).send({
+                statusCode: 401,
+                error: "Unauthorized",
+                message: "Invalid or expired OTP",
+            });
         }
-    );
+
+        reply.setCookie("refreshToken", tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            path: "/auth/refresh",
+            maxAge: tokens.refreshTtlSeconds,
+        });
+
+        return reply.code(200).send({
+            accessToken: tokens.accessToken,
+        });
+    });
 
     type RefreshOp = operations["refreshAccessToken"];
 
