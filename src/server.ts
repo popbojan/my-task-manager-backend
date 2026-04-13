@@ -69,7 +69,8 @@ await fastify.register(cookie);
 // --- CORS ---
 await fastify.register(cors, {
   origin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 });
 
 // --- Routes ---
