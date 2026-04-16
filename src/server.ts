@@ -23,9 +23,12 @@ import { ValidateRefreshTokenActivity } from "./domain/auth/activity/validate-re
 import { JwtTokenAdapter } from "./adapters/driven/security/jwt-token.adapter";
 import { HmacOtpAdapter } from "./adapters/driven/security/hmac-otp.adapter";
 
-import { redis } from "./conf/redis";
+// import { redis } from "./conf/redis";
 import { CryptoAdapter } from "./adapters/driven/security/crypto.adapter";
-import { RedisStoreAdapter } from "./adapters/driven/persistence/redis-store.adapter";
+//import { RedisStoreAdapter } from "./adapters/driven/persistence/redis-store.adapter";
+import { InMemoryStoreAdapter } from "./adapters/driven/persistence/in-memory-store.adapter";
+
+const refreshTokenStore = new InMemoryStoreAdapter();
 
 // --- Infrastructure ---
 const mailAdapter = new MailerAdapter({
@@ -50,14 +53,18 @@ const otpPort = new HmacOtpAdapter({
 });
 
 const cryptoPort = new CryptoAdapter();
-const redisStore = new RedisStoreAdapter(redis);
+// const redisStore = new RedisStoreAdapter(redis);
 
 // --- Activities (Domain Services) ---
 const generateOtpActivity = new GenerateOtpActivity(otpPort);
 const generateTokenActivity = new GenerateTokenActivity(tokenPort);
-const issueRefreshTokenActivity = new IssueRefreshTokenActivity(cryptoPort, redisStore);
-const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity(redisStore);
-const validateRefreshTokenActivity = new ValidateRefreshTokenActivity(cryptoPort, redisStore);
+// const issueRefreshTokenActivity = new IssueRefreshTokenActivity(cryptoPort, redisStore);
+// const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity(redisStore);
+// const validateRefreshTokenActivity = new ValidateRefreshTokenActivity(cryptoPort, redisStore);
+
+const issueRefreshTokenActivity = new IssueRefreshTokenActivity(cryptoPort, refreshTokenStore);
+const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity(refreshTokenStore);
+const validateRefreshTokenActivity = new ValidateRefreshTokenActivity(cryptoPort, refreshTokenStore);
 
 // --- UseCases ---
 const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);
