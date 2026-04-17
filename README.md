@@ -10,10 +10,10 @@ Whenever the OpenAPI spec changes (new endpoints, schema updates, version bump),
 
 #### 1. Update the OpenAPI Spec Version in `package.json`
 
-Update the dependency to the correct Git tag (for example `v1.0.4`):
+Update the dependency to the correct Git tag (for example `v1.0.5`):
 
 ```json
-"@popbojan/task-manager-contract": "github:popbojan/my-task-manager-spec#v1.0.4"
+"@popbojan/task-manager-contract": "github:popbojan/my-task-manager-spec#v1.0.5"
 ```
 
 Make sure the corresponding tag exists in the spec repository.
