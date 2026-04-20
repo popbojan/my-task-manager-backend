@@ -52,7 +52,7 @@ export const authRoutes: FastifyPluginAsync<{
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
-            path: "/auth/refresh",
+            path: "/auth",
             maxAge: tokens.refreshTtlSeconds,
         });
 
@@ -85,7 +85,7 @@ export const authRoutes: FastifyPluginAsync<{
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "lax",
-                path: "/auth/refresh",
+                path: "/auth",
                 maxAge: result.refreshTtlSeconds,
             });
 
@@ -123,7 +123,7 @@ export const authRoutes: FastifyPluginAsync<{
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "lax",
-                path: "/auth/refresh",
+                path: "/auth",
             });
 
             return reply.code(204).send();

@@ -17,6 +17,7 @@ const fastify = Fastify({ logger: true });
 
 import cookie from "@fastify/cookie";
 import { AuthRefreshUseCase } from "./domain/auth/auth-refresh.use-case";
+import { LogoutUseCase } from "./domain/auth/logout.use-case";
 import { IssueRefreshTokenActivity } from "./domain/auth/activity/issue-refresh-token.activity";
 import { RevokeRefreshTokenActivity } from "./domain/auth/activity/revoke-refresh-token.activity";
 import { ValidateRefreshTokenActivity } from "./domain/auth/activity/validate-refresh-token.activity";
@@ -65,6 +66,7 @@ const validateRefreshTokenActivity = new ValidateRefreshTokenActivity(cryptoPort
 const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);
 const loginWithOtpUseCase = new LoginWithOtpUseCase(generateOtpActivity, generateTokenActivity, issueRefreshTokenActivity);
 const authRefreshUseCase = new AuthRefreshUseCase(generateTokenActivity, validateRefreshTokenActivity, issueRefreshTokenActivity, revokeRefreshTokenActivity);
+const logoutUseCase = new LogoutUseCase(revokeRefreshTokenActivity);
 
 await fastify.register(cookie);
 
@@ -79,7 +81,8 @@ await fastify.register(cors, {
 await fastify.register(authRoutes, {
   requestOtpUseCase,
   loginWithOtpUseCase,
-  authRefreshUseCase
+  authRefreshUseCase,
+  logoutUseCase
 });
 
 const start = async () => {
