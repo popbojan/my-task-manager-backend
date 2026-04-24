@@ -11,11 +11,13 @@ export const authRoutes: FastifyPluginAsync<{
     requestOtpUseCase: RequestOtpUseCase;
     loginWithOtpUseCase: LoginWithOtpUseCase;
     authRefreshUseCase: AuthRefreshUseCase;
+    logoutUseCase: LogoutUseCase;
 
 }> = async (fastify, opts) => {
     const { requestOtpUseCase } = opts;
     const { loginWithOtpUseCase } = opts;
     const { authRefreshUseCase } = opts;
+    const { logoutUseCase } = opts;
 
     fastify.post<{ Body: OTPRequest }>(
         "/auth/request-otp",
