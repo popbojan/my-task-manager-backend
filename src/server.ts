@@ -27,6 +27,9 @@ import { HmacOtpAdapter } from "./adapters/driven/security/hmac-otp.adapter";
 import { CryptoAdapter } from "./adapters/driven/security/crypto.adapter";
 import { InMemoryStoreAdapter } from "./adapters/driven/persistence/in-memory-store.adapter";
 
+// TODO: Define Task Model
+// TODO: Define Tasks API
+
 const refreshTokenStore = new InMemoryStoreAdapter();
 
 // --- Infrastructure ---
