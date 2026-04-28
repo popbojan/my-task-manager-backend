@@ -6,4 +6,35 @@ datasource db {
   provider = "postgresql"
 }
 
-// Später kommen hier z. B. Task, User, usw. rein.
+enum TaskStatus {
+  todo
+  in_progress
+  review
+  done
+}
+
+enum TaskPriority {
+  none
+  important
+  urgent
+  important_urgent
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  status      TaskStatus   @default(todo)
+  priority    TaskPriority @default(none)
+  deadline    DateTime?
+
+  email       String
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([priority])
+  @@index([deadline])
+}
