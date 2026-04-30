@@ -1,17 +1,20 @@
-export class GetAuthenticatedEmailUseCase {
-  constructor(
-    private validateAccessTokenActivity: ValidateAccessTokenActivity
-  ) {}
+import type { ValidateAccessTokenActivity } from "./activity/validate-access-token.activity";
 
-  async execute(authorizationHeader?: string): Promise<string | null> {
-    if (!authorizationHeader?.startsWith("Bearer ")) {
-      return null;
+export class GetAuthenticatedEmailUseCase {
+    constructor(
+        private validateAccessTokenActivity: ValidateAccessTokenActivity
+    ) {
     }
 
-    const token = authorizationHeader.slice("Bearer ".length);
+    async execute(authorizationHeader?: string): Promise<string | null> {
+        if (!authorizationHeader?.startsWith("Bearer ")) {
+            return null;
+        }
 
-    const payload = await this.validateAccessTokenActivity.execute(token);
+        const token = authorizationHeader.slice("Bearer ".length);
 
-    return payload.email;
-  }
+        const payload = await this.validateAccessTokenActivity.execute(token);
+
+        return payload.email;
+    }
 }
