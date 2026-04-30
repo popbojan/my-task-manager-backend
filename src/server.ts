@@ -2,14 +2,23 @@ import "dotenv/config";
 import Fastify from "fastify";
 
 import { authRoutes } from "./adapters/driving/web/auth.route.js";
+import { taskRoutes } from "./adapters/driving/web/task.route.js";
 
 import { MailerAdapter } from "./adapters/driven/mail/mailer.adapter";
 
 import { RequestOtpUseCase } from "./domain/auth/request-otp.use-case.js";
 import { LoginWithOtpUseCase } from "./domain/auth/login-with-otp.use-case.js";
+import { GetAuthenticatedEmailUseCase } from "./domain/auth/get-authenticated-email.use-case";
 
 import { GenerateOtpActivity } from "./domain/auth/activity/generate-otp.activity";
 import { GenerateTokenActivity } from "./domain/auth/activity/generate-token.activity";
+import { ValidateAccessTokenActivity } from "./domain/auth/activity/validate-access-token.activity";
+import { GetRelevantTaskActivity } from "./domain/task/activity/get-relevant-task.activity";
+import { GetTaskUseCase } from "./domain/task/get-task.use-case";
+
+import { PrismaTaskAdapter } from "./adapters/driven/persistence/prisma-task.adapter";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 import cors from '@fastify/cors'
 
@@ -29,6 +38,13 @@ import { InMemoryStoreAdapter } from "./adapters/driven/persistence/in-memory-st
 
 // TODO: Define Task Model
 // TODO: Define Tasks API
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL!,
+});
+const prisma = new PrismaClient({ adapter });
+
+const taskPort = new PrismaTaskAdapter(prisma);
 
 const refreshTokenStore = new InMemoryStoreAdapter();
 
@@ -55,7 +71,6 @@ const otpPort = new HmacOtpAdapter({
 });
 
 const cryptoPort = new CryptoAdapter();
-// const redisStore = new RedisStoreAdapter(redis);
 
 // --- Activities (Domain Services) ---
 const generateOtpActivity = new GenerateOtpActivity(otpPort);
@@ -64,12 +79,20 @@ const generateTokenActivity = new GenerateTokenActivity(tokenPort);
 const issueRefreshTokenActivity = new IssueRefreshTokenActivity(cryptoPort, refreshTokenStore);
 const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity(refreshTokenStore);
 const validateRefreshTokenActivity = new ValidateRefreshTokenActivity(cryptoPort, refreshTokenStore);
+const validateAccessTokenActivity = new ValidateAccessTokenActivity(tokenPort);
+
+const getRelevantTaskActivity = new GetRelevantTaskActivity(taskPort);
 
 // --- UseCases ---
 const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);
 const loginWithOtpUseCase = new LoginWithOtpUseCase(generateOtpActivity, generateTokenActivity, issueRefreshTokenActivity);
 const authRefreshUseCase = new AuthRefreshUseCase(generateTokenActivity, validateRefreshTokenActivity, issueRefreshTokenActivity, revokeRefreshTokenActivity);
 const logoutUseCase = new LogoutUseCase(revokeRefreshTokenActivity);
+const getAuthenticatedEmailUseCase =
+  new GetAuthenticatedEmailUseCase(validateAccessTokenActivity);
+
+const getTaskUseCase =
+  new GetTaskUseCase(getRelevantTaskActivity);
 
 await fastify.register(cookie);
 
@@ -85,7 +108,12 @@ await fastify.register(authRoutes, {
   requestOtpUseCase,
   loginWithOtpUseCase,
   authRefreshUseCase,
-  logoutUseCase
+  logoutUseCase,
+});
+
+await fastify.register(taskRoutes, {
+  getTaskUseCase,
+  getAuthenticatedEmailUseCase,
 });
 
 const start = async () => {
@@ -103,3 +131,9 @@ const start = async () => {
 };
 
 start();
+
+process.on("SIGINT", async () => {
+  fastify.log.info("Shutting down...");
+  await prisma.$disconnect();
+  process.exit(0);
+});

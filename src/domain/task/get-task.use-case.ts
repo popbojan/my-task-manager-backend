@@ -1,13 +1,11 @@
-import type { Task } from "@prisma/client";
-import type { PrismaClient } from "@prisma/client";
+import type { GetRelevantTaskActivity } from "./activity/get-relevant-task.activity.js";
 
-export class GetRelevantTaskActivity {
-  constructor(private prisma: PrismaClient) {}
+export class GetTaskUseCase {
+  constructor(
+    private readonly getRelevantTaskActivity: GetRelevantTaskActivity
+  ) {}
 
-  async execute(email: string): Promise<Task[]> {
-    return this.prisma.task.findMany({
-      where: { email },
-      orderBy: { createdAt: "desc" },
-    });
+  async execute(email: string) {
+    return this.getRelevantTaskActivity.execute(email);
   }
 }

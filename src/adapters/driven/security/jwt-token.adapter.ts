@@ -17,4 +17,20 @@ export class JwtTokenAdapter implements TokenPort {
             algorithm: this.config.algorithm,
         });
     }
+
+  verifyAccessToken(token: string): { email: string } {
+    const decoded = jwt.verify(token, this.config.secret, {
+      algorithms: [this.config.algorithm],
+    });
+
+    if (
+      typeof decoded !== "object" ||
+      decoded === null ||
+      typeof decoded.email !== "string"
+    ) {
+      throw new InvalidAccessTokenError();
+    }
+
+    return { email: decoded.email };
+  }
 }
