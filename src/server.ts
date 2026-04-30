@@ -38,6 +38,7 @@ import { InMemoryStoreAdapter } from "./adapters/driven/persistence/in-memory-st
 
 // TODO: Define Task Model
 // TODO: Define Tasks API
+// TODO: Add Linter and prettier
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
