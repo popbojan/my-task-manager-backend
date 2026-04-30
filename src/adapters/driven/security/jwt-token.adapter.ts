@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import type {TokenPort} from "../../../domain/auth/port/token.port";
+import { InvalidAccessTokenError } from "../../../domain/auth/exception/invalid-access-token-error.js";``
 
 type JwtConfig = {
     secret: jwt.Secret;
