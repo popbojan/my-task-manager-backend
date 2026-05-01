@@ -35,6 +35,8 @@ import { HmacOtpAdapter } from "./adapters/driven/security/hmac-otp.adapter";
 
 import { CryptoAdapter } from "./adapters/driven/security/crypto.adapter";
 import { InMemoryStoreAdapter } from "./adapters/driven/persistence/in-memory-store.adapter";
+import {CreateTaskUseCase} from "./domain/task/create-task.use-case";
+import {CreateTaskActivity} from "./domain/task/activity/create-task.activity";
 
 // TODO: Define Create Task API
 // TODO: Define Patch Task API
@@ -84,6 +86,7 @@ const validateRefreshTokenActivity = new ValidateRefreshTokenActivity(cryptoPort
 const validateAccessTokenActivity = new ValidateAccessTokenActivity(tokenPort);
 
 const getRelevantTaskActivity = new GetRelevantTaskActivity(taskPort);
+const createTaskActivity = new CreateTaskActivity(taskPort);
 
 // --- UseCases ---
 const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);
@@ -93,8 +96,8 @@ const logoutUseCase = new LogoutUseCase(revokeRefreshTokenActivity);
 const getAuthenticatedEmailUseCase =
   new GetAuthenticatedEmailUseCase(validateAccessTokenActivity);
 
-const getTaskUseCase =
-  new GetTaskUseCase(getRelevantTaskActivity);
+const getTaskUseCase = new GetTaskUseCase(getRelevantTaskActivity);
+const createTaskUseCase = new CreateTaskUseCase(createTaskActivity);
 
 await fastify.register(cookie);
 
@@ -116,6 +119,7 @@ await fastify.register(authRoutes, {
 await fastify.register(taskRoutes, {
   getTaskUseCase,
   getAuthenticatedEmailUseCase,
+  createTaskUseCase,
 });
 
 const start = async () => {

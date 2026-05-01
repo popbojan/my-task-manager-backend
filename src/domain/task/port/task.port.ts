@@ -1,3 +1,6 @@
+import type {Task} from "../model/task";
+import type {CreateTaskInput} from "../model/create-task-input";
+
 export interface TaskPort {
   findByEmail(email: string): Promise<{
     id: string;
@@ -10,4 +13,6 @@ export interface TaskPort {
     createdAt: Date;
     updatedAt: Date;
   }[]>;
+
+  create(input: CreateTaskInput): Promise<Task>;
 }
