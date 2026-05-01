@@ -36,8 +36,9 @@ import { HmacOtpAdapter } from "./adapters/driven/security/hmac-otp.adapter";
 import { CryptoAdapter } from "./adapters/driven/security/crypto.adapter";
 import { InMemoryStoreAdapter } from "./adapters/driven/persistence/in-memory-store.adapter";
 
-// TODO: Define Task Model
-// TODO: Define Tasks API
+// TODO: Define Create Task API
+// TODO: Define Patch Task API
+// TODO: Define Delete Task API
 // TODO: Add Linter and prettier
 
 const adapter = new PrismaPg({
