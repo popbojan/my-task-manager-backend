@@ -38,7 +38,6 @@ import { InMemoryStoreAdapter } from "./adapters/driven/persistence/in-memory-st
 import {CreateTaskUseCase} from "./domain/task/create-task.use-case";
 import {CreateTaskActivity} from "./domain/task/activity/create-task.activity";
 
-// TODO: Define Create Task API
 // TODO: Define Patch Task API
 // TODO: Define Delete Task API
 // TODO: Add Linter and prettier
