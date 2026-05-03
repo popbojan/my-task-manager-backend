@@ -70,9 +70,9 @@ export const authRoutes: FastifyPluginAsync<{
             | RefreshOp["responses"][200]["content"]["application/json"]
             | RefreshOp["responses"][401]["content"]["application/json"];
     }>("/auth/refresh", async (request, reply) => {
-        const raw = request.cookies.refreshToken;
+        const refreshToken = request.cookies.refreshToken;
 
-        if (!raw) {
+        if (!refreshToken) {
             return reply.code(401).send({
                 statusCode: 401,
                 error: "Unauthorized",
@@ -81,7 +81,15 @@ export const authRoutes: FastifyPluginAsync<{
         }
 
         try {
-            const result = await authRefreshUseCase.execute(raw);
+            const result = await authRefreshUseCase.execute(refreshToken);
+
+            if (!result) {
+                return reply.code(401).send({
+                    statusCode: 401,
+                    error: "Unauthorized",
+                    message: "Invalid or expired refresh token",
+                });
+            }
 
             reply.setCookie("refreshToken", result.refreshToken, {
                 httpOnly: true,
@@ -103,14 +111,14 @@ export const authRoutes: FastifyPluginAsync<{
 
     type LogoutOp = operations["logout"];
 
-    fastify.post<{
-        Reply:
-            | LogoutOp["responses"][204]
-            | LogoutOp["responses"][401]["content"]["application/json"];
-    }>("/auth/logout", async (request, reply) => {
-        const raw = request.cookies.refreshToken;
+    type LogoutReply =
+        | void
+        | LogoutOp["responses"][401]["content"]["application/json"];
 
-        if (!raw) {
+    fastify.post<{ Reply: LogoutReply }>("/auth/logout", async (request, reply) => {
+        const refreshToken = request.cookies.refreshToken;
+
+        if (!refreshToken) {
             return reply.code(401).send({
                 statusCode: 401,
                 error: "Unauthorized",
@@ -119,7 +127,7 @@ export const authRoutes: FastifyPluginAsync<{
         }
 
         try {
-            await logoutUseCase.execute(raw);
+            await logoutUseCase.execute(refreshToken);
 
             reply.clearCookie("refreshToken", {
                 httpOnly: true,
@@ -128,7 +136,7 @@ export const authRoutes: FastifyPluginAsync<{
                 path: "/auth",
             });
 
-            return reply.code(204).send();
+            return reply.code(204);
         } catch {
             return reply.code(401).send({
                 statusCode: 401,
