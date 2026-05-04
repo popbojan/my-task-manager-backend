@@ -37,8 +37,9 @@ import { CryptoAdapter } from "./adapters/driven/security/crypto.adapter";
 import { InMemoryStoreAdapter } from "./adapters/driven/persistence/in-memory-store.adapter";
 import {CreateTaskUseCase} from "./domain/task/create-task.use-case";
 import {CreateTaskActivity} from "./domain/task/activity/create-task.activity";
+import {UpdateTaskActivity} from "./domain/task/activity/update-task.activity";
+import {UpdateTaskUseCase} from "./domain/task/update-task.use-case";
 
-// TODO: Define Patch Task API
 // TODO: Define Delete Task API
 // TODO: Add Linter and prettier
 
@@ -75,7 +76,7 @@ const otpPort = new HmacOtpAdapter({
 
 const cryptoPort = new CryptoAdapter();
 
-// --- Activities (Domain Services) ---
+// --- Activities ---
 const generateOtpActivity = new GenerateOtpActivity(otpPort);
 const generateTokenActivity = new GenerateTokenActivity(tokenPort);
 
@@ -86,6 +87,7 @@ const validateAccessTokenActivity = new ValidateAccessTokenActivity(tokenPort);
 
 const getRelevantTaskActivity = new GetRelevantTaskActivity(taskPort);
 const createTaskActivity = new CreateTaskActivity(taskPort);
+const updateTaskActivity = new UpdateTaskActivity(taskPort);
 
 // --- UseCases ---
 const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);
@@ -97,6 +99,7 @@ const getAuthenticatedEmailUseCase =
 
 const getTaskUseCase = new GetTaskUseCase(getRelevantTaskActivity);
 const createTaskUseCase = new CreateTaskUseCase(createTaskActivity);
+const updateTaskUseCase = new UpdateTaskUseCase(updateTaskActivity);
 
 await fastify.register(cookie);
 
@@ -119,8 +122,10 @@ await fastify.register(taskRoutes, {
   getTaskUseCase,
   getAuthenticatedEmailUseCase,
   createTaskUseCase,
+  updateTaskUseCase
 });
 
+// --- Start the App ---
 const start = async () => {
   try {
     const port = Number(process.env.PORT) || 3001;
@@ -137,6 +142,7 @@ const start = async () => {
 
 start();
 
+// --- Shut Down the App ---
 process.on("SIGINT", async () => {
   fastify.log.info("Shutting down...");
   await prisma.$disconnect();
