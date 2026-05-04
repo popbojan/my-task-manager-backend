@@ -21,10 +21,8 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import cors from '@fastify/cors'
-
-const fastify = Fastify({ logger: true });
-
 import cookie from "@fastify/cookie";
+
 import { AuthRefreshUseCase } from "./domain/auth/auth-refresh.use-case";
 import { LogoutUseCase } from "./domain/auth/logout.use-case";
 import { IssueRefreshTokenActivity } from "./domain/auth/activity/issue-refresh-token.activity";
@@ -40,8 +38,11 @@ import {CreateTaskActivity} from "./domain/task/activity/create-task.activity";
 import {UpdateTaskActivity} from "./domain/task/activity/update-task.activity";
 import {UpdateTaskUseCase} from "./domain/task/update-task.use-case";
 
+// TODO: Add Integration Tests
 // TODO: Define Delete Task API
 // TODO: Add Linter and prettier
+
+const fastify = Fastify({ logger: true });
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
