@@ -37,7 +37,8 @@ import {GetTaskUseCase} from "./domain/task/get-task.use-case.js";
 import {CreateTaskUseCase} from "./domain/task/create-task.use-case.js";
 import {UpdateTaskUseCase} from "./domain/task/update-task.use-case.js";
 
-// TODO: Add Integration Tests
+// TODO: Make tests configuration cleaner, to run tests on a separate DB
+// TODO: Cover all use-cases with Integration Tests
 // TODO: Define Delete Task API
 // TODO: Add Linter and prettier
 
