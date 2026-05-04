@@ -9,7 +9,8 @@
     "dev": "docker compose up -d && tsx watch src/server.ts",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "generate-types": "openapi-typescript ./node_modules/@popbojan/task-manager-contract/openapi.yaml -o ./src/adapters/driving/web/types/api.ts"
+    "generate-types": "openapi-typescript ./node_modules/@popbojan/task-manager-contract/openapi.yaml -o ./src/adapters/driving/web/types/api.ts",
+    "test:integration": "tsx --test test/integration/**/*.test.ts"
   },
   "repository": {
     "type": "git",
