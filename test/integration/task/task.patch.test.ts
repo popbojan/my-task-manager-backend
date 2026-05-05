@@ -45,4 +45,12 @@ test("PATCH /tasks/:taskId updates an authenticated user's task", async () => {
     assert.equal(body.status, "in_progress");
     assert.equal(body.priority, "important_urgent");
     assert.equal(body.deadline, "2026-05-20T00:00:00.000Z");
+
+    const updatedTask = await ctx.prisma.task.findUniqueOrThrow({
+        where: { id: task.id },
+    });
+
+    assert.equal(updatedTask.title, "Updated task title");
+    assert.equal(updatedTask.status, "in_progress");
+    assert.equal(updatedTask.priority, "important_urgent");
 });
