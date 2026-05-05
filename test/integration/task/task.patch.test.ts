@@ -53,4 +53,5 @@ test("PATCH /tasks/:taskId updates an authenticated user's task", async () => {
     assert.equal(updatedTask.title, "Updated task title");
     assert.equal(updatedTask.status, "in_progress");
     assert.equal(updatedTask.priority, "important_urgent");
+    assert.equal(updatedTask.description, "Old description");
 });
