@@ -27,7 +27,7 @@ import {GenerateTokenActivity} from "./domain/auth/activity/generate-token.activ
 import {IssueRefreshTokenActivity} from "./domain/auth/activity/issue-refresh-token.activity.js";
 import {RevokeRefreshTokenActivity} from "./domain/auth/activity/revoke-refresh-token.activity.js";
 import {ValidateRefreshTokenActivity} from "./domain/auth/activity/validate-refresh-token.activity.js";
-import {ValidateAccessTokenActivity} from "./domain/auth/activity/validate-access-token.activity.js";
+import { ValidateAccessTokenActivity } from "./domain/auth/activity/validate-access-token.activity.js";
 
 import {GetRelevantTaskActivity} from "./domain/task/activity/get-relevant-task.activity.js";
 import {CreateTaskActivity} from "./domain/task/activity/create-task.activity.js";
