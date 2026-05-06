@@ -4,7 +4,7 @@ import type {GetTaskUseCase} from "../../../domain/task/get-task.use-case";
 import type {GetAuthenticatedEmailUseCase} from "../../../domain/auth/get-authenticated-email.use-case";
 import type {CreateTaskUseCase} from "../../../domain/task/create-task.use-case";
 import {mapCreateTaskRequestToInput, mapTaskToResponse, mapUpdateTaskRequestToInput} from "./mapper/task.mapper";
-import { buildAuthHook } from "./auth/auth.hook.js";
+import {buildAuthHook} from "./auth/auth.hook.js";
 import type {UpdateTaskUseCase} from "../../../domain/task/update-task.use-case";
 
 type GetTasksOp = operations["getTasks"];
@@ -15,10 +15,18 @@ export const taskRoutes: FastifyPluginAsync<{
     getAuthenticatedEmailUseCase: GetAuthenticatedEmailUseCase;
     createTaskUseCase: CreateTaskUseCase;
     updateTaskUseCase: UpdateTaskUseCase;
+    openApiSpec: any;
 }> = async (fastify, opts) => {
-    const {getTaskUseCase, getAuthenticatedEmailUseCase, createTaskUseCase, updateTaskUseCase} = opts;
+    const {getTaskUseCase, getAuthenticatedEmailUseCase, createTaskUseCase, updateTaskUseCase, openApiSpec} = opts;
     const authHook = buildAuthHook(getAuthenticatedEmailUseCase);
     fastify.addHook("preHandler", authHook);
+
+    const updateTaskBodySchema =
+        openApiSpec.paths["/tasks/{taskId}"]
+            .patch
+            .requestBody
+            .content["application/json"]
+            .schema;
 
     fastify.get<{
         Reply:
@@ -57,7 +65,11 @@ export const taskRoutes: FastifyPluginAsync<{
         Params: UpdateTaskOp["parameters"]["path"];
         Body: UpdateTaskOp["requestBody"]["content"]["application/json"];
         Reply: UpdateTaskReply;
-    }>("/tasks/:taskId", async (request, reply) => {
+    }>("/tasks/:taskId", {
+        schema: {
+            body: updateTaskBodySchema,
+        },
+    }, async (request, reply) => {
         const email = request.user.email;
 
         const input = mapUpdateTaskRequestToInput(

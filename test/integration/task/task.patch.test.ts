@@ -55,3 +55,35 @@ test("PATCH /tasks/:taskId updates an authenticated user's task", async () => {
     assert.equal(updatedTask.priority, "important_urgent");
     assert.equal(updatedTask.description, "Old description");
 });
+
+test("PATCH /tasks/:taskId returns 400 for invalid status", async () => {
+    const email = "test@example.com";
+    const token = createTestAccessToken(email);
+
+    const task = await ctx.prisma.task.create({
+        data: {
+            email,
+            title: "Task",
+            description: "Description",
+            status: "todo",
+            priority: "none",
+        },
+    });
+
+    const response = await ctx.fastify.inject({
+        method: "PATCH",
+        url: `/tasks/${task.id}`,
+        headers: {
+            authorization: `Bearer ${token}`,
+        },
+        payload: {
+            status: "INVALID_STATUS",
+        },
+    });
+
+    assert.equal(response.statusCode, 400);
+
+    const body = response.json();
+
+    assert.match(body.message, /status/i);
+});

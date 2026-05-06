@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/popbojan/my-task-manager-backend#readme",
   "dependencies": {
+    "@apidevtools/json-schema-ref-parser": "^15.3.5",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.2.0",
     "@fastify/swagger": "^9.7.0",
@@ -35,7 +36,8 @@
     "ioredis": "^5.9.3",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^8.0.1",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "yaml": "^2.8.4"
   },
   "devDependencies": {
     "@testcontainers/postgresql": "^11.14.0",

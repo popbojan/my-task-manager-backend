@@ -36,6 +36,7 @@ import {UpdateTaskActivity} from "./domain/task/activity/update-task.activity.js
 import {GetTaskUseCase} from "./domain/task/get-task.use-case.js";
 import {CreateTaskUseCase} from "./domain/task/create-task.use-case.js";
 import {UpdateTaskUseCase} from "./domain/task/update-task.use-case.js";
+import {loadOpenApiRuntimeSpec} from "./adapters/driving/web/openapi/openapi-runtime-schema";
 
 // TODO: Make tests configuration cleaner, to run tests on a separate DB
 // TODO: Cover all use-cases with Integration Tests
@@ -108,6 +109,8 @@ export async function buildApp() {
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     });
 
+    const openApiSpec = await loadOpenApiRuntimeSpec();
+
     // --- Routes ---
     await fastify.register(authRoutes, {
         requestOtpUseCase,
@@ -121,6 +124,7 @@ export async function buildApp() {
         getAuthenticatedEmailUseCase,
         createTaskUseCase,
         updateTaskUseCase,
+        openApiSpec
     });
 
     return {fastify, prisma};
