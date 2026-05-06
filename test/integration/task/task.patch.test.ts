@@ -87,3 +87,79 @@ test("PATCH /tasks/:taskId returns 400 for invalid status", async () => {
 
     assert.match(body.message, /status/i);
 });
+
+test("PATCH /tasks/:taskId returns 401 when token is invalid", async () => {
+    const email = "test@example.com";
+
+    const task = await ctx.prisma.task.create({
+        data: {
+            email,
+            title: "Task",
+            description: "Description",
+            status: "todo",
+            priority: "none",
+            deadline: new Date("2026-05-10T00:00:00.000Z"),
+        },
+    });
+
+    const response = await ctx.fastify.inject({
+        method: "PATCH",
+        url: `/tasks/${task.id}`,
+        headers: {
+            authorization: "Bearer invalid-token",
+        },
+        payload: {
+            title: "Updated title",
+        },
+    });
+
+    assert.equal(response.statusCode, 401);
+
+    const body = response.json();
+
+    assert.equal(body.statusCode, 401);
+    assert.equal(body.error, "Unauthorized");
+});
+
+test("PATCH /tasks/:taskId returns 404 when task belongs to another user", async () => {
+    const ownerEmail = "owner@example.com";
+    const otherUserEmail = "other@example.com";
+
+    const otherUserToken = createTestAccessToken(otherUserEmail);
+
+    const task = await ctx.prisma.task.create({
+        data: {
+            email: ownerEmail,
+            title: "Protected task",
+            description: "Should not be editable",
+            status: "todo",
+            priority: "none",
+        },
+    });
+
+    const response = await ctx.fastify.inject({
+        method: "PATCH",
+        url: `/tasks/${task.id}`,
+        headers: {
+            authorization: `Bearer ${otherUserToken}`,
+        },
+        payload: {
+            title: "Hijacked task",
+        },
+    });
+
+    assert.equal(response.statusCode, 404);
+
+    const body = response.json();
+
+    assert.equal(body.statusCode, 404);
+    assert.equal(body.error, "Not Found");
+    assert.equal(body.message, "Task not found");
+
+    const unchangedTask = await ctx.prisma.task.findUniqueOrThrow({
+        where: { id: task.id },
+    });
+
+    assert.equal(unchangedTask.title, "Protected task");
+    assert.equal(unchangedTask.email, ownerEmail);
+});
