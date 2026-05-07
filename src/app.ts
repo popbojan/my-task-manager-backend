@@ -38,7 +38,7 @@ import {CreateTaskUseCase} from "./domain/task/create-task.use-case.js";
 import {UpdateTaskUseCase} from "./domain/task/update-task.use-case.js";
 import {loadOpenApiRuntimeSpec} from "./adapters/driving/web/openapi/openapi-runtime-schema";
 
-// TODO: Cover all use-cases with Integration Tests (GET and CREATION, DELETION[later])
+// TODO: Cover all use-cases with Integration Tests (GET and DELETION[later])
 // TODO: Define Delete Task API
 // TODO: Add Linter and prettier
 

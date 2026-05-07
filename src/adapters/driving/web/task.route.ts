@@ -6,6 +6,7 @@ import type {CreateTaskUseCase} from "../../../domain/task/create-task.use-case"
 import {mapCreateTaskRequestToInput, mapTaskToResponse, mapUpdateTaskRequestToInput} from "./mapper/task.mapper";
 import {buildAuthHook} from "./auth/auth.hook.js";
 import type {UpdateTaskUseCase} from "../../../domain/task/update-task.use-case";
+import {toFastifySchema} from "./openapi/openapi-schema.mapper";
 
 type GetTasksOp = operations["getTasks"];
 type CreateTaskOp = operations["createTask"];
@@ -21,6 +22,13 @@ export const taskRoutes: FastifyPluginAsync<{
     const authHook = buildAuthHook(getAuthenticatedEmailUseCase);
     fastify.addHook("preHandler", authHook);
 
+    const createTaskBodySchema = toFastifySchema(
+        openApiSpec.paths["/tasks"]
+            .post
+            .requestBody
+            .content["application/json"]
+            .schema
+    );
     const updateTaskBodySchema =
         openApiSpec.paths["/tasks/{taskId}"]
             .patch
@@ -46,7 +54,13 @@ export const taskRoutes: FastifyPluginAsync<{
             | CreateTaskOp["responses"][201]["content"]["application/json"]
             | CreateTaskOp["responses"][400]["content"]["application/json"]
             | CreateTaskOp["responses"][401]["content"]["application/json"];
-    }>("/tasks", async (request, reply) => {
+    }>("/tasks",
+        {
+            schema: {
+                body: createTaskBodySchema,
+            },
+        },
+        async (request, reply) => {
         const email = request.user.email;
 
         const input = mapCreateTaskRequestToInput(email, request.body);
