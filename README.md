@@ -13,7 +13,7 @@ Whenever the OpenAPI spec changes (new endpoints, schema updates, version bump),
 Update the dependency to the correct Git tag (for example `v1.0.5`):
 
 ```json
-"@popbojan/task-manager-contract": "github:popbojan/my-task-manager-spec#v1.0.5"
+"@popbojan/task-manager-contract": "github:popbojan/my-task-manager-spec#v1.0.7"
 ```
 
 Make sure the corresponding tag exists in the spec repository.
