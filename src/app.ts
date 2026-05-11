@@ -3,6 +3,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
 
+// @ts-ignore
 import {PrismaClient} from "@prisma/client";
 import {PrismaPg} from "@prisma/adapter-pg";
 
