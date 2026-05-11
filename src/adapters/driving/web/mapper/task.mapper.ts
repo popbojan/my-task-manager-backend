@@ -2,6 +2,7 @@ import type { components } from "../types/api.js";
 import type {CreateTaskInput} from "../../../../domain/task/model/create-task-input";
 import type {Task} from "../../../../domain/task/model/task";
 import type {UpdateTaskInput} from "../../../../domain/task/model/udate-task-input";
+import type {GetTaskByIdInput} from "../../../../domain/task/model/get-task-by-id-input";
 
 type CreateTaskRequest = components["schemas"]["CreateTaskRequest"];
 type TaskResponse = components["schemas"]["Task"];
@@ -58,5 +59,15 @@ export function mapTaskToResponse(task: Task): TaskResponse {
         email: task.email,
         createdAt: task.createdAt.toISOString(),
         updatedAt: task.updatedAt.toISOString(),
+    };
+}
+
+export function mapGetTaskByIdRequestToInput(
+    taskId: string,
+    email: string
+): GetTaskByIdInput {
+    return {
+        taskId,
+        email,
     };
 }

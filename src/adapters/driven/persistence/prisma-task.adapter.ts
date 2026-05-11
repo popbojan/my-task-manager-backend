@@ -1,7 +1,9 @@
+// @ts-ignore
 import type { PrismaClient } from "@prisma/client";
 import type { TaskPort } from "../../../domain/task/port/task.port.js";
 import type {CreateTaskInput} from "../../../domain/task/model/create-task-input";
 import type {UpdateTaskInput} from "../../../domain/task/model/udate-task-input";
+import type {GetTaskByIdInput} from "../../../domain/task/model/get-task-by-id-input";
 
 export class PrismaTaskAdapter implements TaskPort {
   constructor(private readonly prisma: PrismaClient) {}
@@ -37,6 +39,15 @@ export class PrismaTaskAdapter implements TaskPort {
     return this.prisma.task.findUnique({
       where: {
         id: taskId,
+      },
+    });
+  }
+
+  async findById(input: GetTaskByIdInput) {
+    return this.prisma.task.findFirst({
+      where: {
+        id: input.taskId,
+        email: input.email,
       },
     });
   }
