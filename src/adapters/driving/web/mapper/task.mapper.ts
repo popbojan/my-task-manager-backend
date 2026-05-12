@@ -3,6 +3,7 @@ import type {CreateTaskInput} from "../../../../domain/task/model/create-task-in
 import type {Task} from "../../../../domain/task/model/task";
 import type {UpdateTaskInput} from "../../../../domain/task/model/udate-task-input";
 import type {GetTaskByIdInput} from "../../../../domain/task/model/get-task-by-id-input";
+import type {DeleteTaskInput} from "../../../../domain/task/model/delete-task-input";
 
 type CreateTaskRequest = components["schemas"]["CreateTaskRequest"];
 type TaskResponse = components["schemas"]["Task"];
@@ -66,6 +67,16 @@ export function mapGetTaskByIdRequestToInput(
     taskId: string,
     email: string
 ): GetTaskByIdInput {
+    return {
+        taskId,
+        email,
+    };
+}
+
+export function mapDeleteTaskRequestToInput(
+    taskId: string,
+    email: string
+): DeleteTaskInput {
     return {
         taskId,
         email,

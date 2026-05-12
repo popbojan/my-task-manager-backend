@@ -22,23 +22,26 @@ import {LoginWithOtpUseCase} from "./domain/auth/login-with-otp.use-case.js";
 import {AuthRefreshUseCase} from "./domain/auth/auth-refresh.use-case.js";
 import {LogoutUseCase} from "./domain/auth/logout.use-case.js";
 import {GetAuthenticatedEmailUseCase} from "./domain/auth/get-authenticated-email.use-case.js";
-import {GetTaskByIdUseCase} from "./domain/task/get-task-by-id.use-case.js";
-
 import {GenerateOtpActivity} from "./domain/auth/activity/generate-otp.activity.js";
+
 import {GenerateTokenActivity} from "./domain/auth/activity/generate-token.activity.js";
 import {IssueRefreshTokenActivity} from "./domain/auth/activity/issue-refresh-token.activity.js";
 import {RevokeRefreshTokenActivity} from "./domain/auth/activity/revoke-refresh-token.activity.js";
 import {ValidateRefreshTokenActivity} from "./domain/auth/activity/validate-refresh-token.activity.js";
 import { ValidateAccessTokenActivity } from "./domain/auth/activity/validate-access-token.activity.js";
-import {GetTaskByIdActivity} from "./domain/task/activity/get-task-by-id.activity.js";
 
-import {GetRelevantTaskActivity} from "./domain/task/activity/get-relevant-task.activity.js";
 import {CreateTaskActivity} from "./domain/task/activity/create-task.activity.js";
+import {GetRelevantTaskActivity} from "./domain/task/activity/get-relevant-task.activity.js";
 import {UpdateTaskActivity} from "./domain/task/activity/update-task.activity.js";
+import {GetTaskByIdActivity} from "./domain/task/activity/get-task-by-id.activity.js";
+import {DeleteTaskActivity} from "./domain/task/activity/delete-task.activity.js";
 
-import {GetTasksUseCase} from "./domain/task/get-tasks.use-case";
 import {CreateTaskUseCase} from "./domain/task/create-task.use-case.js";
+import {GetTasksUseCase} from "./domain/task/get-tasks.use-case";
 import {UpdateTaskUseCase} from "./domain/task/update-task.use-case.js";
+import {GetTaskByIdUseCase} from "./domain/task/get-task-by-id.use-case.js";
+import {DeleteTaskUseCase} from "./domain/task/delete-task.use-case.js";
+
 import {loadOpenApiRuntimeSpec} from "./adapters/driving/web/openapi/openapi-runtime-schema";
 
 // TODO: Cover all use-cases with Integration Tests (GET and DELETION[later])
@@ -81,29 +84,35 @@ export async function buildApp() {
     const cryptoPort = new CryptoAdapter();
 
     // -- Activities
+    //                  -- auth --
     const generateOtpActivity = new GenerateOtpActivity(otpPort);
     const generateTokenActivity = new GenerateTokenActivity(tokenPort);
     const issueRefreshTokenActivity = new IssueRefreshTokenActivity(cryptoPort, refreshTokenStore);
     const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity(refreshTokenStore);
     const validateRefreshTokenActivity = new ValidateRefreshTokenActivity(cryptoPort, refreshTokenStore);
     const validateAccessTokenActivity = new ValidateAccessTokenActivity(tokenPort);
-    const getTaskByIdActivity = new GetTaskByIdActivity(taskPort);
 
+    //                  -- task --
     const getRelevantTaskActivity = new GetRelevantTaskActivity(taskPort);
     const createTaskActivity = new CreateTaskActivity(taskPort);
     const updateTaskActivity = new UpdateTaskActivity(taskPort);
+    const getTaskByIdActivity = new GetTaskByIdActivity(taskPort);
+    const deleteTaskActivity = new DeleteTaskActivity(taskPort);
 
     // --- Use Cases ---
+    //                  -- auth --
     const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);
     const loginWithOtpUseCase = new LoginWithOtpUseCase(generateOtpActivity, generateTokenActivity, issueRefreshTokenActivity);
     const authRefreshUseCase = new AuthRefreshUseCase(generateTokenActivity, validateRefreshTokenActivity, issueRefreshTokenActivity, revokeRefreshTokenActivity);
     const logoutUseCase = new LogoutUseCase(revokeRefreshTokenActivity);
     const getAuthenticatedEmailUseCase = new GetAuthenticatedEmailUseCase(validateAccessTokenActivity);
 
+    //                  -- task --
     const getTaskUseCase = new GetTasksUseCase(getRelevantTaskActivity);
     const createTaskUseCase = new CreateTaskUseCase(createTaskActivity);
     const updateTaskUseCase = new UpdateTaskUseCase(updateTaskActivity);
     const getTaskByIdUseCase = new GetTaskByIdUseCase(getTaskByIdActivity);
+    const deleteTaskUseCase = new DeleteTaskUseCase(getTaskByIdActivity, deleteTaskActivity);
 
     await fastify.register(cookie);
 
@@ -129,6 +138,7 @@ export async function buildApp() {
         createTaskUseCase,
         updateTaskUseCase,
         getTaskByIdUseCase,
+        deleteTaskUseCase,
         openApiSpec
     });
 

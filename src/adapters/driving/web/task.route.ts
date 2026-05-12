@@ -4,20 +4,24 @@ import type {GetTasksUseCase} from "../../../domain/task/get-tasks.use-case";
 import type {GetTaskByIdUseCase} from "../../../domain/task/get-task-by-id.use-case";
 import type {GetAuthenticatedEmailUseCase} from "../../../domain/auth/get-authenticated-email.use-case";
 import type {CreateTaskUseCase} from "../../../domain/task/create-task.use-case";
+import type {DeleteTaskUseCase} from "../../../domain/task/delete-task.use-case.js";
 import {
     mapCreateTaskRequestToInput,
     mapGetTaskByIdRequestToInput,
     mapTaskToResponse,
-    mapUpdateTaskRequestToInput
+    mapUpdateTaskRequestToInput,
+    mapDeleteTaskRequestToInput
 } from "./mapper/task.mapper";
 import {buildAuthHook} from "./auth/auth.hook.js";
 import type {UpdateTaskUseCase} from "../../../domain/task/update-task.use-case";
 import {toFastifySchema} from "./openapi/openapi-schema.mapper";
+import {ForbiddenTaskAccessException} from "../../../domain/task/exception/forbidden-task-access..exception";
 
 type GetTasksOp = operations["getTasks"];
 type GetTaskByIdOp = operations["getTask"];
 type CreateTaskOp = operations["createTask"];
 type UpdateTaskOp = operations["updateTask"];
+type DeleteTaskOp = operations["deleteTask"];
 
 export const taskRoutes: FastifyPluginAsync<{
     getTaskUseCase: GetTasksUseCase;
@@ -25,9 +29,10 @@ export const taskRoutes: FastifyPluginAsync<{
     createTaskUseCase: CreateTaskUseCase;
     updateTaskUseCase: UpdateTaskUseCase;
     getTaskByIdUseCase: GetTaskByIdUseCase;
+    deleteTaskUseCase: DeleteTaskUseCase;
     openApiSpec: any;
 }> = async (fastify, opts) => {
-    const {getTaskUseCase, getAuthenticatedEmailUseCase, createTaskUseCase, updateTaskUseCase, getTaskByIdUseCase, openApiSpec} = opts;
+    const {getTaskUseCase, getAuthenticatedEmailUseCase, createTaskUseCase, updateTaskUseCase, getTaskByIdUseCase, deleteTaskUseCase, openApiSpec} = opts;
     const authHook = buildAuthHook(getAuthenticatedEmailUseCase);
     fastify.addHook("preHandler", authHook);
 
@@ -135,6 +140,34 @@ export const taskRoutes: FastifyPluginAsync<{
         }
 
         return reply.code(200).send(mapTaskToResponse(task));
+    });
+
+    fastify.delete<{
+        Params: DeleteTaskOp["parameters"]["path"];
+        Reply: void;
+    }>("/tasks/:taskId", async (request, reply) => {
+        const email = request.user.email;
+
+        const input = mapDeleteTaskRequestToInput(
+            request.params.taskId,
+            email
+        );
+
+        try {
+            await deleteTaskUseCase.execute(input);
+
+            return reply.code(204);
+        } catch (error) {
+            if (error instanceof ForbiddenTaskAccessException) {
+                return reply.code(403).send({
+                    statusCode: 403,
+                    error: "Forbidden",
+                    message: error.message,
+                });
+            }
+
+            throw error;
+        }
     });
 
 }
