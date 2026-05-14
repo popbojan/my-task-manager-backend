@@ -21,24 +21,13 @@ export class PrismaTaskAdapter implements TaskPort {
   }
 
   async update(input: UpdateTaskInput) {
-    const { taskId, email, ...data } = input;
+    const { taskId, email: _email, ...data } = input;
 
-    const result = await this.prisma.task.updateMany({
+    return this.prisma.task.update({
       where: {
         id: taskId,
-        email,
       },
       data,
-    });
-
-    if (result.count === 0) {
-      return null;
-    }
-
-    return this.prisma.task.findUnique({
-      where: {
-        id: taskId,
-      },
     });
   }
 
