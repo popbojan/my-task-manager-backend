@@ -44,7 +44,7 @@ import {DeleteTaskUseCase} from "./domain/task/delete-task.use-case.js";
 
 import {loadOpenApiRuntimeSpec} from "./adapters/driving/web/openapi/openapi-runtime-schema";
 
-// TODO: Cover all use-cases with Integration Tests (GET and DELETION[later])
+// TODO: Cover all AUTH use-cases with Integration Tests
 // TODO: Add ZOD to the APIs (I need that runtime validation)
 // TODO: Add Linter and prettier
 
