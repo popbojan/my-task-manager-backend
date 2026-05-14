@@ -170,7 +170,7 @@ export const taskRoutes: FastifyPluginAsync<{
 
         await deleteTaskUseCase.execute(input);
 
-        return reply.code(204);
+        return reply.code(204).send();
     });
 
 }
