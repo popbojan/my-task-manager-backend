@@ -1,6 +1,6 @@
 import type { TaskPort } from "../port/task.port.js";
 import type { GetTaskByIdInput } from "../model/get-task-by-id-input.js";
-import {ForbiddenTaskAccessException} from "../exception/forbidden-task-access..exception";
+import {ForbiddenTaskAccessException} from "../exception/forbidden-task-access.exception";
 
 export class GetTaskByIdActivity {
     constructor(private readonly taskPort: TaskPort) {}

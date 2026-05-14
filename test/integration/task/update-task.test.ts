@@ -121,7 +121,7 @@ test("PATCH /tasks/:taskId returns 401 when token is invalid", async () => {
     assert.equal(body.error, "Unauthorized");
 });
 
-test("PATCH /tasks/:taskId returns 404 when task belongs to another user", async () => {
+test("PATCH /tasks/:taskId returns 403 when task belongs to another user", async () => {
     const ownerEmail = "owner@example.com";
     const otherUserEmail = "other@example.com";
 
@@ -148,13 +148,13 @@ test("PATCH /tasks/:taskId returns 404 when task belongs to another user", async
         },
     });
 
-    assert.equal(response.statusCode, 404);
+    assert.equal(response.statusCode, 403);
 
     const body = response.json();
 
-    assert.equal(body.statusCode, 404);
-    assert.equal(body.error, "Not Found");
-    assert.equal(body.message, "Task not found");
+    assert.equal(body.statusCode, 403);
+    assert.equal(body.error, "Forbidden");
+    assert.equal(body.message, "You are not allowed to access this task");
 
     const unchangedTask = await ctx.prisma.task.findUniqueOrThrow({
         where: { id: task.id },

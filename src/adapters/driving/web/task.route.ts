@@ -4,7 +4,7 @@ import type {GetTasksUseCase} from "../../../domain/task/get-tasks.use-case";
 import type {GetTaskByIdUseCase} from "../../../domain/task/get-task-by-id.use-case";
 import type {GetAuthenticatedEmailUseCase} from "../../../domain/auth/get-authenticated-email.use-case";
 import type {CreateTaskUseCase} from "../../../domain/task/create-task.use-case";
-import type {DeleteTaskUseCase} from "../../../domain/task/delete-task.use-case.js";
+import type {DeleteTaskUseCase} from "../../../domain/task/delete-task.use-case";
 import {
     mapCreateTaskRequestToInput,
     mapGetTaskByIdRequestToInput,
@@ -15,7 +15,7 @@ import {
 import {buildAuthHook} from "./auth/auth.hook.js";
 import type {UpdateTaskUseCase} from "../../../domain/task/update-task.use-case";
 import {toFastifySchema} from "./openapi/openapi-schema.mapper";
-import {ForbiddenTaskAccessException} from "../../../domain/task/exception/forbidden-task-access..exception";
+import {ForbiddenTaskAccessException} from "../../../domain/task/exception/forbidden-task-access.exception";
 
 type GetTasksOp = operations["getTasks"];
 type GetTaskByIdOp = operations["getTask"];
@@ -33,8 +33,22 @@ export const taskRoutes: FastifyPluginAsync<{
     openApiSpec: any;
 }> = async (fastify, opts) => {
     const {getTaskUseCase, getAuthenticatedEmailUseCase, createTaskUseCase, updateTaskUseCase, getTaskByIdUseCase, deleteTaskUseCase, openApiSpec} = opts;
+
     const authHook = buildAuthHook(getAuthenticatedEmailUseCase);
     fastify.addHook("preHandler", authHook);
+
+    fastify.setErrorHandler((error, request, reply) => {
+        if (error instanceof ForbiddenTaskAccessException) {
+            return reply.code(403).send({
+                statusCode: 403,
+                error: "Forbidden",
+                message: error.message,
+            });
+        }
+
+        request.log.error(error);
+        return reply.send(error);
+    });
 
     const createTaskBodySchema = toFastifySchema(
         openApiSpec.paths["/tasks"]
@@ -85,6 +99,7 @@ export const taskRoutes: FastifyPluginAsync<{
 
     type UpdateTaskReply =
         | UpdateTaskOp["responses"][200]["content"]["application/json"]
+        | UpdateTaskOp["responses"][403]["content"]["application/json"]
         | UpdateTaskOp["responses"][404]["content"]["application/json"];
 
     fastify.patch<{
@@ -98,11 +113,7 @@ export const taskRoutes: FastifyPluginAsync<{
     }, async (request, reply) => {
         const email = request.user.email;
 
-        const input = mapUpdateTaskRequestToInput(
-            request.params.taskId,
-            email,
-            request.body
-        );
+        const input = mapUpdateTaskRequestToInput(request.params.taskId, email, request.body);
 
         const task = await updateTaskUseCase.execute(input);
 
@@ -119,6 +130,7 @@ export const taskRoutes: FastifyPluginAsync<{
 
     type GetTaskByIdReply =
         | GetTaskByIdOp["responses"][200]["content"]["application/json"]
+        | GetTaskByIdOp["responses"][403]["content"]["application/json"]
         | GetTaskByIdOp["responses"][404]["content"]["application/json"];
 
     fastify.get<{
@@ -142,9 +154,12 @@ export const taskRoutes: FastifyPluginAsync<{
         return reply.code(200).send(mapTaskToResponse(task));
     });
 
+    type DeleteTaskReply =
+        | void
+        | DeleteTaskOp["responses"][403]["content"]["application/json"];
     fastify.delete<{
         Params: DeleteTaskOp["parameters"]["path"];
-        Reply: void;
+        Reply: DeleteTaskReply;
     }>("/tasks/:taskId", async (request, reply) => {
         const email = request.user.email;
 
@@ -153,21 +168,9 @@ export const taskRoutes: FastifyPluginAsync<{
             email
         );
 
-        try {
-            await deleteTaskUseCase.execute(input);
+        await deleteTaskUseCase.execute(input);
 
-            return reply.code(204);
-        } catch (error) {
-            if (error instanceof ForbiddenTaskAccessException) {
-                return reply.code(403).send({
-                    statusCode: 403,
-                    error: "Forbidden",
-                    message: error.message,
-                });
-            }
-
-            throw error;
-        }
+        return reply.code(204);
     });
 
 }
