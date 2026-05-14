@@ -47,7 +47,7 @@ import {loadOpenApiRuntimeSpec} from "./adapters/driving/web/openapi/openapi-run
 // TODO: Define 403 statuses in SPEC when task for given token is not found
 // TODO: Refine update and get-by-task-id endpoints. 403 should be thrown when someone wants to update/get a task that doesn't belong to him (follow delete logic)
 // TODO: Cover all use-cases with Integration Tests (GET and DELETION[later])
-// TODO: Define Delete Task API
+// TODO: Add ZOD to the APIs (I need that runtime validation)
 // TODO: Add Linter and prettier
 
 export async function buildApp() {
