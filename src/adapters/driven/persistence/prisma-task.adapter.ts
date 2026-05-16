@@ -1,49 +1,48 @@
-// @ts-ignore
-import type {PrismaClient} from "@prisma/client";
-import type {TaskPort} from "../../../domain/task/port/task.port.js";
-import type {CreateTaskInput} from "../../../domain/task/model/create-task-input";
-import type {UpdateTaskInput} from "../../../domain/task/model/udate-task-input";
+import type { PrismaClient } from "@prisma/client";
+import type { TaskPort } from "../../../domain/task/port/task.port.js";
+import type { CreateTaskInput } from "../../../domain/task/model/create-task-input";
+import type { UpdateTaskInput } from "../../../domain/task/model/udate-task-input";
 
 export class PrismaTaskAdapter implements TaskPort {
-  constructor(private readonly prisma: PrismaClient) {}
+    constructor(private readonly prisma: PrismaClient) {}
 
-  async findByEmail(email: string) {
-    return this.prisma.task.findMany({
-      where: { email },
-      orderBy: { createdAt: "desc" },
-    });
-  }
+    async findByEmail(email: string) {
+        return this.prisma.task.findMany({
+            where: { email },
+            orderBy: { createdAt: "desc" },
+        });
+    }
 
-  async create(input: CreateTaskInput) {
-    return this.prisma.task.create({
-      data: input,
-    });
-  }
+    async create(input: CreateTaskInput) {
+        return this.prisma.task.create({
+            data: input,
+        });
+    }
 
-  async update(input: UpdateTaskInput) {
-    const { taskId, email: _email, ...data } = input;
+    async update(input: UpdateTaskInput) {
+        const { taskId, email: _discardedOwnerEmail, ...data } = input;
 
-    return this.prisma.task.update({
-      where: {
-        id: taskId,
-      },
-      data,
-    });
-  }
+        return this.prisma.task.update({
+            where: {
+                id: taskId,
+            },
+            data,
+        });
+    }
 
-  async findById(taskId: string) {
-    return this.prisma.task.findUnique({
-      where: {
-        id: taskId,
-      },
-    });
-  }
+    async findById(taskId: string) {
+        return this.prisma.task.findUnique({
+            where: {
+                id: taskId,
+            },
+        });
+    }
 
-  async delete(taskId: string): Promise<void> {
-    await this.prisma.task.delete({
-      where: {
-        id: taskId,
-      },
-    });
-  }
+    async delete(taskId: string): Promise<void> {
+        await this.prisma.task.delete({
+            where: {
+                id: taskId,
+            },
+        });
+    }
 }

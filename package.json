@@ -1,54 +1,63 @@
 {
-  "name": "my-task-manager-backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "docker compose up -d && tsx watch src/server.ts",
-    "db:up": "docker compose up -d",
-    "db:down": "docker compose down",
-    "generate-types": "openapi-typescript ./node_modules/@popbojan/task-manager-contract/openapi.yaml -o ./src/adapters/driving/web/types/api.ts",
-    "test:integration": "tsx --test test/integration/**/*.test.ts"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/popbojan/my-task-manager-backend.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/popbojan/my-task-manager-backend/issues"
-  },
-  "homepage": "https://github.com/popbojan/my-task-manager-backend#readme",
-  "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "^15.3.5",
-    "@fastify/cookie": "^11.0.2",
-    "@fastify/cors": "^11.2.0",
-    "@fastify/swagger": "^9.7.0",
-    "@fastify/swagger-ui": "^5.2.5",
-    "@popbojan/task-manager-contract": "github:popbojan/my-task-manager-spec#v1.0.8",
-    "@prisma/adapter-pg": "^7.8.0",
-    "@prisma/client": "^7.4.1",
-    "fastify": "^5.7.4",
-    "ioredis": "^5.9.3",
-    "jsonwebtoken": "^9.0.3",
-    "nodemailer": "^8.0.1",
-    "pg": "^8.20.0",
-    "yaml": "^2.8.4"
-  },
-  "devDependencies": {
-    "@testcontainers/postgresql": "^11.14.0",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^25.2.3",
-    "@types/nodemailer": "^7.0.9",
-    "openapi-typescript": "^7.12.0",
-    "prisma": "^7.4.1",
-    "testcontainers": "^11.14.0",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  }
+    "name": "my-task-manager-backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "docker compose up -d && tsx watch src/server.ts",
+        "db:up": "docker compose up -d",
+        "db:down": "docker compose down",
+        "generate-types": "openapi-typescript ./node_modules/@popbojan/task-manager-contract/openapi.yaml -o ./src/adapters/driving/web/types/api.ts",
+        "test:integration": "tsx --test test/integration/**/*.test.ts",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/popbojan/my-task-manager-backend.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/popbojan/my-task-manager-backend/issues"
+    },
+    "homepage": "https://github.com/popbojan/my-task-manager-backend#readme",
+    "dependencies": {
+        "@apidevtools/json-schema-ref-parser": "^15.3.5",
+        "@fastify/cookie": "^11.0.2",
+        "@fastify/cors": "^11.2.0",
+        "@fastify/swagger": "^9.7.0",
+        "@fastify/swagger-ui": "^5.2.5",
+        "@popbojan/task-manager-contract": "github:popbojan/my-task-manager-spec#v1.0.8",
+        "@prisma/adapter-pg": "^7.8.0",
+        "@prisma/client": "^7.4.1",
+        "fastify": "^5.7.4",
+        "ioredis": "^5.9.3",
+        "jsonwebtoken": "^9.0.3",
+        "nodemailer": "^8.0.1",
+        "pg": "^8.20.0",
+        "yaml": "^2.8.4"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@testcontainers/postgresql": "^11.14.0",
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/node": "^25.2.3",
+        "@types/nodemailer": "^7.0.9",
+        "eslint": "^10.4.0",
+        "eslint-config-prettier": "^10.1.8",
+        "openapi-typescript": "^7.12.0",
+        "prettier": "^3.8.3",
+        "prisma": "^7.4.1",
+        "testcontainers": "^11.14.0",
+        "ts-node": "^10.9.2",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.59.3"
+    }
 }

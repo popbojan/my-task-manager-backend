@@ -1,13 +1,8 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { GetAuthenticatedEmailUseCase } from "../../../../domain/auth/get-authenticated-email.use-case.js";
 
-export function buildAuthHook(
-    getAuthenticatedEmailUseCase: GetAuthenticatedEmailUseCase
-) {
-    return async function authHook(
-        request: FastifyRequest,
-        reply: FastifyReply
-    ) {
+export function buildAuthHook(getAuthenticatedEmailUseCase: GetAuthenticatedEmailUseCase) {
+    return async function authHook(request: FastifyRequest, reply: FastifyReply) {
         const token = extractBearerToken(request.headers.authorization);
 
         if (!token) {
@@ -30,7 +25,6 @@ export function buildAuthHook(
             }
 
             request.user = { email };
-
         } catch {
             return reply.code(401).send({
                 statusCode: 401,

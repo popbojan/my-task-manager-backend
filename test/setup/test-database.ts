@@ -22,7 +22,6 @@ export async function startTestDatabase() {
         },
     });
 
-
     return {
         stop: async () => {
             await container.stop();

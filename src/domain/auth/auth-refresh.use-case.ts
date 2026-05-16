@@ -8,11 +8,14 @@ export class AuthRefreshUseCase {
         private generateTokenActivity: GenerateTokenActivity,
         private validateRefreshTokenActivity: ValidateRefreshTokenActivity,
         private issueRefreshTokenActivity: IssueRefreshTokenActivity,
-        private revokeRefreshTokenActivity: RevokeRefreshTokenActivity
+        private revokeRefreshTokenActivity: RevokeRefreshTokenActivity,
     ) {}
 
-    async execute(rawRefreshToken: string): Promise<{ accessToken: string; refreshToken: string; refreshTtlSeconds: number } | null> {
-        const { email, refreshTokenHash } = await this.validateRefreshTokenActivity.execute(rawRefreshToken);
+    async execute(
+        rawRefreshToken: string,
+    ): Promise<{ accessToken: string; refreshToken: string; refreshTtlSeconds: number } | null> {
+        const { email, refreshTokenHash } =
+            await this.validateRefreshTokenActivity.execute(rawRefreshToken);
 
         // Rotation
         await this.revokeRefreshTokenActivity.execute(refreshTokenHash);

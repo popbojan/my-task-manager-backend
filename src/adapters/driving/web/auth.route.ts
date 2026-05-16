@@ -39,21 +39,15 @@ export const authRoutes: FastifyPluginAsync<{
     };
 
     const requestOtpJson =
-        spec.paths["/auth/request-otp"]?.post?.requestBody?.content?.[
-            "application/json"
-        ];
+        spec.paths["/auth/request-otp"]?.post?.requestBody?.content?.["application/json"];
     if (requestOtpJson?.schema === undefined) {
         throw new Error("OpenAPI spec missing POST /auth/request-otp JSON body schema");
     }
 
     const loginWithOtpJson =
-        spec.paths["/auth/login-with-otp"]?.post?.requestBody?.content?.[
-            "application/json"
-        ];
+        spec.paths["/auth/login-with-otp"]?.post?.requestBody?.content?.["application/json"];
     if (loginWithOtpJson?.schema === undefined) {
-        throw new Error(
-            "OpenAPI spec missing POST /auth/login-with-otp JSON body schema",
-        );
+        throw new Error("OpenAPI spec missing POST /auth/login-with-otp JSON body schema");
     }
 
     const requestOtpBodySchema = toFastifySchema(requestOtpJson.schema);
@@ -154,7 +148,7 @@ export const authRoutes: FastifyPluginAsync<{
             });
 
             return reply.code(200).send({ accessToken: result.accessToken });
-        } catch (_error) {
+        } catch {
             return reply.code(401).send({
                 statusCode: 401,
                 error: "Unauthorized",
@@ -165,9 +159,7 @@ export const authRoutes: FastifyPluginAsync<{
 
     type LogoutOp = operations["logout"];
 
-    type LogoutReply =
-        | void
-        | LogoutOp["responses"][401]["content"]["application/json"];
+    type LogoutReply = void | LogoutOp["responses"][401]["content"]["application/json"];
 
     fastify.post<{ Reply: LogoutReply }>("/auth/logout", async (request, reply) => {
         const refreshToken = request.cookies.refreshToken;

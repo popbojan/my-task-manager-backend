@@ -3,11 +3,7 @@ export function getSetCookieValue(
     setCookie: string | string[] | undefined,
     cookieName: string,
 ): string | undefined {
-    const lines = Array.isArray(setCookie)
-        ? setCookie
-        : setCookie != null
-          ? [setCookie]
-          : [];
+    const lines = Array.isArray(setCookie) ? setCookie : setCookie != null ? [setCookie] : [];
 
     const prefix = `${cookieName}=`;
 
@@ -17,8 +13,7 @@ export function getSetCookieValue(
 
         const fromValue = idx + prefix.length;
         const semiIdx = line.indexOf(";", fromValue);
-        const raw =
-            semiIdx === -1 ? line.slice(fromValue) : line.slice(fromValue, semiIdx);
+        const raw = semiIdx === -1 ? line.slice(fromValue) : line.slice(fromValue, semiIdx);
         return raw.trim();
     }
 

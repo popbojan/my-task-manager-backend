@@ -15,8 +15,7 @@ export function computeTestOtp(
     const digits = options?.digits ?? 6;
     const nowUnix = options?.nowUnix ?? Math.floor(Date.now() / 1000);
 
-    const windowStartUnix =
-        Math.floor(nowUnix / windowSizeSec) * windowSizeSec;
+    const windowStartUnix = Math.floor(nowUnix / windowSizeSec) * windowSizeSec;
 
     const message = `${email}|${windowStartUnix}`;
     const hmac = createHmac("sha256", secret).update(message).digest();

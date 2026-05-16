@@ -6,10 +6,13 @@ export class LoginWithOtpUseCase {
     constructor(
         private generateOtpActivity: GenerateOtpActivity,
         private generateTokenActivity: GenerateTokenActivity,
-        private issueRefreshTokenActivity: IssueRefreshTokenActivity
+        private issueRefreshTokenActivity: IssueRefreshTokenActivity,
     ) {}
 
-    async execute(email: string, otpFromClient: string): Promise<{ accessToken: string; refreshToken: string; refreshTtlSeconds: number } | null> {
+    async execute(
+        email: string,
+        otpFromClient: string,
+    ): Promise<{ accessToken: string; refreshToken: string; refreshTtlSeconds: number } | null> {
         const expectedCode = this.generateOtpActivity.execute(email);
         const isValid = expectedCode === otpFromClient.trim();
 

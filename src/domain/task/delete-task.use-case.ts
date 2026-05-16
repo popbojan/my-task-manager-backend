@@ -1,11 +1,11 @@
-import type {GetTaskByIdActivity} from "./activity/get-task-by-id.activity.js";
-import type {DeleteTaskActivity} from "./activity/delete-task.activity.js";
-import type {DeleteTaskInput} from "./model/delete-task-input.js";
+import type { GetTaskByIdActivity } from "./activity/get-task-by-id.activity.js";
+import type { DeleteTaskActivity } from "./activity/delete-task.activity.js";
+import type { DeleteTaskInput } from "./model/delete-task-input.js";
 
 export class DeleteTaskUseCase {
     constructor(
         private readonly getTaskByIdActivity: GetTaskByIdActivity,
-        private readonly deleteTaskActivity: DeleteTaskActivity
+        private readonly deleteTaskActivity: DeleteTaskActivity,
     ) {}
 
     async execute(input: DeleteTaskInput): Promise<void> {

@@ -1,9 +1,9 @@
 import type { components } from "../types/api.js";
-import type {CreateTaskInput} from "../../../../domain/task/model/create-task-input";
-import type {Task} from "../../../../domain/task/model/task";
-import type {UpdateTaskInput} from "../../../../domain/task/model/udate-task-input";
-import type {GetTaskByIdInput} from "../../../../domain/task/model/get-task-by-id-input";
-import type {DeleteTaskInput} from "../../../../domain/task/model/delete-task-input";
+import type { CreateTaskInput } from "../../../../domain/task/model/create-task-input";
+import type { Task } from "../../../../domain/task/model/task";
+import type { UpdateTaskInput } from "../../../../domain/task/model/udate-task-input";
+import type { GetTaskByIdInput } from "../../../../domain/task/model/get-task-by-id-input";
+import type { DeleteTaskInput } from "../../../../domain/task/model/delete-task-input";
 
 type CreateTaskRequest = components["schemas"]["CreateTaskRequest"];
 type TaskResponse = components["schemas"]["Task"];
@@ -11,7 +11,7 @@ type UpdateTaskRequest = components["schemas"]["UpdateTaskRequest"];
 
 export function mapCreateTaskRequestToInput(
     email: string,
-    request: CreateTaskRequest
+    request: CreateTaskRequest,
 ): CreateTaskInput {
     return {
         email,
@@ -26,7 +26,7 @@ export function mapCreateTaskRequestToInput(
 export function mapUpdateTaskRequestToInput(
     taskId: string,
     email: string,
-    request: UpdateTaskRequest
+    request: UpdateTaskRequest,
 ): UpdateTaskInput {
     return {
         taskId,
@@ -63,20 +63,14 @@ export function mapTaskToResponse(task: Task): TaskResponse {
     };
 }
 
-export function mapGetTaskByIdRequestToInput(
-    taskId: string,
-    email: string
-): GetTaskByIdInput {
+export function mapGetTaskByIdRequestToInput(taskId: string, email: string): GetTaskByIdInput {
     return {
         taskId,
         email,
     };
 }
 
-export function mapDeleteTaskRequestToInput(
-    taskId: string,
-    email: string
-): DeleteTaskInput {
+export function mapDeleteTaskRequestToInput(taskId: string, email: string): DeleteTaskInput {
     return {
         taskId,
         email,

@@ -1,4 +1,4 @@
-import type {TaskPort} from "../port/task.port.js";
+import type { TaskPort } from "../port/task.port.js";
 
 export class DeleteTaskActivity {
     constructor(private readonly taskPort: TaskPort) {}

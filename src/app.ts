@@ -3,50 +3,47 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
 
-// @ts-ignore
-import {PrismaClient} from "@prisma/client";
-import {PrismaPg} from "@prisma/adapter-pg";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-import {authRoutes} from "./adapters/driving/web/auth.route.js";
-import {taskRoutes} from "./adapters/driving/web/task.route.js";
+import { authRoutes } from "./adapters/driving/web/auth.route.js";
+import { taskRoutes } from "./adapters/driving/web/task.route.js";
 
-import {MailerAdapter} from "./adapters/driven/mail/mailer.adapter.js";
-import {JwtTokenAdapter} from "./adapters/driven/security/jwt-token.adapter.js";
-import {HmacOtpAdapter} from "./adapters/driven/security/hmac-otp.adapter.js";
-import {CryptoAdapter} from "./adapters/driven/security/crypto.adapter.js";
-import {InMemoryStoreAdapter} from "./adapters/driven/persistence/in-memory-store.adapter.js";
-import {PrismaTaskAdapter} from "./adapters/driven/persistence/prisma-task.adapter.js";
+import { MailerAdapter } from "./adapters/driven/mail/mailer.adapter.js";
+import { JwtTokenAdapter } from "./adapters/driven/security/jwt-token.adapter.js";
+import { HmacOtpAdapter } from "./adapters/driven/security/hmac-otp.adapter.js";
+import { CryptoAdapter } from "./adapters/driven/security/crypto.adapter.js";
+import { InMemoryStoreAdapter } from "./adapters/driven/persistence/in-memory-store.adapter.js";
+import { PrismaTaskAdapter } from "./adapters/driven/persistence/prisma-task.adapter.js";
 
-import {RequestOtpUseCase} from "./domain/auth/request-otp.use-case.js";
-import {LoginWithOtpUseCase} from "./domain/auth/login-with-otp.use-case.js";
-import {AuthRefreshUseCase} from "./domain/auth/auth-refresh.use-case.js";
-import {LogoutUseCase} from "./domain/auth/logout.use-case.js";
-import {GetAuthenticatedEmailUseCase} from "./domain/auth/get-authenticated-email.use-case.js";
-import {GenerateOtpActivity} from "./domain/auth/activity/generate-otp.activity.js";
+import { RequestOtpUseCase } from "./domain/auth/request-otp.use-case.js";
+import { LoginWithOtpUseCase } from "./domain/auth/login-with-otp.use-case.js";
+import { AuthRefreshUseCase } from "./domain/auth/auth-refresh.use-case.js";
+import { LogoutUseCase } from "./domain/auth/logout.use-case.js";
+import { GetAuthenticatedEmailUseCase } from "./domain/auth/get-authenticated-email.use-case.js";
+import { GenerateOtpActivity } from "./domain/auth/activity/generate-otp.activity.js";
 
-import {GenerateTokenActivity} from "./domain/auth/activity/generate-token.activity.js";
-import {IssueRefreshTokenActivity} from "./domain/auth/activity/issue-refresh-token.activity.js";
-import {RevokeRefreshTokenActivity} from "./domain/auth/activity/revoke-refresh-token.activity.js";
-import {ValidateRefreshTokenActivity} from "./domain/auth/activity/validate-refresh-token.activity.js";
+import { GenerateTokenActivity } from "./domain/auth/activity/generate-token.activity.js";
+import { IssueRefreshTokenActivity } from "./domain/auth/activity/issue-refresh-token.activity.js";
+import { RevokeRefreshTokenActivity } from "./domain/auth/activity/revoke-refresh-token.activity.js";
+import { ValidateRefreshTokenActivity } from "./domain/auth/activity/validate-refresh-token.activity.js";
 import { ValidateAccessTokenActivity } from "./domain/auth/activity/validate-access-token.activity.js";
 
-import {CreateTaskActivity} from "./domain/task/activity/create-task.activity.js";
-import {GetRelevantTaskActivity} from "./domain/task/activity/get-relevant-task.activity.js";
-import {UpdateTaskActivity} from "./domain/task/activity/update-task.activity.js";
-import {GetTaskByIdActivity} from "./domain/task/activity/get-task-by-id.activity.js";
-import {DeleteTaskActivity} from "./domain/task/activity/delete-task.activity.js";
+import { CreateTaskActivity } from "./domain/task/activity/create-task.activity.js";
+import { GetRelevantTaskActivity } from "./domain/task/activity/get-relevant-task.activity.js";
+import { UpdateTaskActivity } from "./domain/task/activity/update-task.activity.js";
+import { GetTaskByIdActivity } from "./domain/task/activity/get-task-by-id.activity.js";
+import { DeleteTaskActivity } from "./domain/task/activity/delete-task.activity.js";
 
-import {CreateTaskUseCase} from "./domain/task/create-task.use-case.js";
-import {GetTasksUseCase} from "./domain/task/get-tasks.use-case";
-import {UpdateTaskUseCase} from "./domain/task/update-task.use-case.js";
-import {GetTaskByIdUseCase} from "./domain/task/get-task-by-id.use-case.js";
-import {DeleteTaskUseCase} from "./domain/task/delete-task.use-case.js";
+import { CreateTaskUseCase } from "./domain/task/create-task.use-case.js";
+import { GetTasksUseCase } from "./domain/task/get-tasks.use-case";
+import { UpdateTaskUseCase } from "./domain/task/update-task.use-case.js";
+import { GetTaskByIdUseCase } from "./domain/task/get-task-by-id.use-case.js";
+import { DeleteTaskUseCase } from "./domain/task/delete-task.use-case.js";
 
-import {loadOpenApiRuntimeSpec} from "./adapters/driving/web/openapi/openapi-runtime-schema";
-import type {MailPort} from "./domain/auth/port/mail.port.js";
-// TODO: Add ZOD to the APIs (I need that runtime validation)
-
-// TODO: Add Linter and prettier
+import { loadOpenApiRuntimeSpec } from "./adapters/driving/web/openapi/openapi-runtime-schema";
+import type { OpenApiPathsDocument } from "./adapters/driving/web/openapi/openapi-paths-document.types.js";
+import type { MailPort } from "./domain/auth/port/mail.port.js";
 
 export type BuildAppOptions = {
     /** When set (e.g. integration tests), skips real SMTP configuration. */
@@ -54,13 +51,13 @@ export type BuildAppOptions = {
 };
 
 export async function buildApp(options?: BuildAppOptions) {
-    const fastify = Fastify({logger: true});
+    const fastify = Fastify({ logger: true });
 
     const adapter = new PrismaPg({
         connectionString: process.env.DATABASE_URL!,
     });
 
-    const prisma = new PrismaClient({adapter});
+    const prisma = new PrismaClient({ adapter });
 
     const taskPort = new PrismaTaskAdapter(prisma);
     const refreshTokenStore = new InMemoryStoreAdapter();
@@ -96,7 +93,10 @@ export async function buildApp(options?: BuildAppOptions) {
     const generateTokenActivity = new GenerateTokenActivity(tokenPort);
     const issueRefreshTokenActivity = new IssueRefreshTokenActivity(cryptoPort, refreshTokenStore);
     const revokeRefreshTokenActivity = new RevokeRefreshTokenActivity(refreshTokenStore);
-    const validateRefreshTokenActivity = new ValidateRefreshTokenActivity(cryptoPort, refreshTokenStore);
+    const validateRefreshTokenActivity = new ValidateRefreshTokenActivity(
+        cryptoPort,
+        refreshTokenStore,
+    );
     const validateAccessTokenActivity = new ValidateAccessTokenActivity(tokenPort);
 
     //                  -- task --
@@ -109,10 +109,24 @@ export async function buildApp(options?: BuildAppOptions) {
     // --- Use Cases ---
     //                  -- auth --
     const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);
-    const loginWithOtpUseCase = new LoginWithOtpUseCase(generateOtpActivity, generateTokenActivity, issueRefreshTokenActivity);
-    const authRefreshUseCase = new AuthRefreshUseCase(generateTokenActivity, validateRefreshTokenActivity, issueRefreshTokenActivity, revokeRefreshTokenActivity);
-    const logoutUseCase = new LogoutUseCase(validateRefreshTokenActivity, revokeRefreshTokenActivity);
-    const getAuthenticatedEmailUseCase = new GetAuthenticatedEmailUseCase(validateAccessTokenActivity);
+    const loginWithOtpUseCase = new LoginWithOtpUseCase(
+        generateOtpActivity,
+        generateTokenActivity,
+        issueRefreshTokenActivity,
+    );
+    const authRefreshUseCase = new AuthRefreshUseCase(
+        generateTokenActivity,
+        validateRefreshTokenActivity,
+        issueRefreshTokenActivity,
+        revokeRefreshTokenActivity,
+    );
+    const logoutUseCase = new LogoutUseCase(
+        validateRefreshTokenActivity,
+        revokeRefreshTokenActivity,
+    );
+    const getAuthenticatedEmailUseCase = new GetAuthenticatedEmailUseCase(
+        validateAccessTokenActivity,
+    );
 
     //                  -- task --
     const getTaskUseCase = new GetTasksUseCase(getRelevantTaskActivity);
@@ -129,7 +143,7 @@ export async function buildApp(options?: BuildAppOptions) {
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     });
 
-    const openApiSpec = await loadOpenApiRuntimeSpec();
+    const openApiSpec = (await loadOpenApiRuntimeSpec()) as OpenApiPathsDocument;
 
     // --- Routes ---
     await fastify.register(authRoutes, {
@@ -147,8 +161,8 @@ export async function buildApp(options?: BuildAppOptions) {
         updateTaskUseCase,
         getTaskByIdUseCase,
         deleteTaskUseCase,
-        openApiSpec
+        openApiSpec,
     });
 
-    return {fastify, prisma};
+    return { fastify, prisma };
 }

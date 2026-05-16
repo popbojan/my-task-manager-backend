@@ -1,9 +1,7 @@
-import type {ValidateAccessTokenActivity} from "./activity/validate-access-token.activity";
+import type { ValidateAccessTokenActivity } from "./activity/validate-access-token.activity";
 
 export class GetAuthenticatedEmailUseCase {
-    constructor(
-        private validateAccessTokenActivity: ValidateAccessTokenActivity
-    ) {}
+    constructor(private validateAccessTokenActivity: ValidateAccessTokenActivity) {}
 
     async execute(token: string): Promise<string | null> {
         try {

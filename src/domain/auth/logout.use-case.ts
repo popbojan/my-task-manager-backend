@@ -8,8 +8,7 @@ export class LogoutUseCase {
     ) {}
 
     async execute(refreshToken: string): Promise<void> {
-        const { refreshTokenHash } =
-            await this.validateRefreshTokenActivity.execute(refreshToken);
+        const { refreshTokenHash } = await this.validateRefreshTokenActivity.execute(refreshToken);
 
         await this.revokeRefreshTokenActivity.execute(refreshTokenHash);
     }

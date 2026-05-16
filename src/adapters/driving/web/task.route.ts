@@ -1,21 +1,22 @@
-import type {FastifyPluginAsync} from "fastify";
-import type {operations} from "./types/api";
-import type {GetTasksUseCase} from "../../../domain/task/get-tasks.use-case";
-import type {GetTaskByIdUseCase} from "../../../domain/task/get-task-by-id.use-case";
-import type {GetAuthenticatedEmailUseCase} from "../../../domain/auth/get-authenticated-email.use-case";
-import type {CreateTaskUseCase} from "../../../domain/task/create-task.use-case";
-import type {DeleteTaskUseCase} from "../../../domain/task/delete-task.use-case";
+import type { FastifyPluginAsync } from "fastify";
+import type { operations } from "./types/api";
+import type { GetTasksUseCase } from "../../../domain/task/get-tasks.use-case";
+import type { GetTaskByIdUseCase } from "../../../domain/task/get-task-by-id.use-case";
+import type { GetAuthenticatedEmailUseCase } from "../../../domain/auth/get-authenticated-email.use-case";
+import type { CreateTaskUseCase } from "../../../domain/task/create-task.use-case";
+import type { DeleteTaskUseCase } from "../../../domain/task/delete-task.use-case";
 import {
     mapCreateTaskRequestToInput,
     mapGetTaskByIdRequestToInput,
     mapTaskToResponse,
     mapUpdateTaskRequestToInput,
-    mapDeleteTaskRequestToInput
+    mapDeleteTaskRequestToInput,
 } from "./mapper/task.mapper";
-import {buildAuthHook} from "./auth/auth.hook.js";
-import type {UpdateTaskUseCase} from "../../../domain/task/update-task.use-case";
-import {toFastifySchema} from "./openapi/openapi-schema.mapper";
-import {ForbiddenTaskAccessException} from "../../../domain/task/exception/forbidden-task-access.exception";
+import { buildAuthHook } from "./auth/auth.hook.js";
+import type { UpdateTaskUseCase } from "../../../domain/task/update-task.use-case";
+import { toFastifySchema } from "./openapi/openapi-schema.mapper";
+import { ForbiddenTaskAccessException } from "../../../domain/task/exception/forbidden-task-access.exception";
+import type { OpenApiPathsDocument } from "./openapi/openapi-paths-document.types";
 
 type GetTasksOp = operations["getTasks"];
 type GetTaskByIdOp = operations["getTask"];
@@ -30,9 +31,17 @@ export const taskRoutes: FastifyPluginAsync<{
     updateTaskUseCase: UpdateTaskUseCase;
     getTaskByIdUseCase: GetTaskByIdUseCase;
     deleteTaskUseCase: DeleteTaskUseCase;
-    openApiSpec: any;
+    openApiSpec: OpenApiPathsDocument;
 }> = async (fastify, opts) => {
-    const {getTaskUseCase, getAuthenticatedEmailUseCase, createTaskUseCase, updateTaskUseCase, getTaskByIdUseCase, deleteTaskUseCase, openApiSpec} = opts;
+    const {
+        getTaskUseCase,
+        getAuthenticatedEmailUseCase,
+        createTaskUseCase,
+        updateTaskUseCase,
+        getTaskByIdUseCase,
+        deleteTaskUseCase,
+        openApiSpec,
+    } = opts;
 
     const authHook = buildAuthHook(getAuthenticatedEmailUseCase);
     fastify.addHook("preHandler", authHook);
@@ -50,19 +59,21 @@ export const taskRoutes: FastifyPluginAsync<{
         return reply.send(error);
     });
 
-    const createTaskBodySchema = toFastifySchema(
-        openApiSpec.paths["/tasks"]
-            .post
-            .requestBody
-            .content["application/json"]
-            .schema
-    );
-    const updateTaskBodySchema =
-        openApiSpec.paths["/tasks/{taskId}"]
-            .patch
-            .requestBody
-            .content["application/json"]
-            .schema;
+    const tasksPostJson =
+        openApiSpec.paths["/tasks"]?.post?.requestBody?.content?.["application/json"];
+    if (tasksPostJson?.schema === undefined) {
+        throw new Error("OpenAPI spec missing POST /tasks JSON body schema");
+    }
+
+    const patchTaskJson =
+        openApiSpec.paths["/tasks/{taskId}"]?.patch?.requestBody?.content?.["application/json"];
+    if (patchTaskJson?.schema === undefined) {
+        throw new Error("OpenAPI spec missing PATCH /tasks/{taskId} JSON body schema");
+    }
+
+    const createTaskBodySchema = toFastifySchema(tasksPostJson.schema);
+
+    const updateTaskBodySchema = toFastifySchema(patchTaskJson.schema);
 
     fastify.get<{
         Reply:
@@ -82,20 +93,22 @@ export const taskRoutes: FastifyPluginAsync<{
             | CreateTaskOp["responses"][201]["content"]["application/json"]
             | CreateTaskOp["responses"][400]["content"]["application/json"]
             | CreateTaskOp["responses"][401]["content"]["application/json"];
-    }>("/tasks",
+    }>(
+        "/tasks",
         {
             schema: {
                 body: createTaskBodySchema,
             },
         },
         async (request, reply) => {
-        const email = request.user.email;
+            const email = request.user.email;
 
-        const input = mapCreateTaskRequestToInput(email, request.body);
-        const task = await createTaskUseCase.execute(input);
+            const input = mapCreateTaskRequestToInput(email, request.body);
+            const task = await createTaskUseCase.execute(input);
 
-        return reply.code(201).send(mapTaskToResponse(task));
-    });
+            return reply.code(201).send(mapTaskToResponse(task));
+        },
+    );
 
     type UpdateTaskReply =
         | UpdateTaskOp["responses"][200]["content"]["application/json"]
@@ -106,27 +119,31 @@ export const taskRoutes: FastifyPluginAsync<{
         Params: UpdateTaskOp["parameters"]["path"];
         Body: UpdateTaskOp["requestBody"]["content"]["application/json"];
         Reply: UpdateTaskReply;
-    }>("/tasks/:taskId", {
-        schema: {
-            body: updateTaskBodySchema,
+    }>(
+        "/tasks/:taskId",
+        {
+            schema: {
+                body: updateTaskBodySchema,
+            },
         },
-    }, async (request, reply) => {
-        const email = request.user.email;
+        async (request, reply) => {
+            const email = request.user.email;
 
-        const input = mapUpdateTaskRequestToInput(request.params.taskId, email, request.body);
+            const input = mapUpdateTaskRequestToInput(request.params.taskId, email, request.body);
 
-        const task = await updateTaskUseCase.execute(input);
+            const task = await updateTaskUseCase.execute(input);
 
-        if (!task) {
-            return reply.code(404).send({
-                statusCode: 404,
-                error: "Not Found",
-                message: "Task not found",
-            });
-        }
+            if (!task) {
+                return reply.code(404).send({
+                    statusCode: 404,
+                    error: "Not Found",
+                    message: "Task not found",
+                });
+            }
 
-        return reply.code(200).send(mapTaskToResponse(task));
-    });
+            return reply.code(200).send(mapTaskToResponse(task));
+        },
+    );
 
     type GetTaskByIdReply =
         | GetTaskByIdOp["responses"][200]["content"]["application/json"]
@@ -154,23 +171,17 @@ export const taskRoutes: FastifyPluginAsync<{
         return reply.code(200).send(mapTaskToResponse(task));
     });
 
-    type DeleteTaskReply =
-        | void
-        | DeleteTaskOp["responses"][403]["content"]["application/json"];
+    type DeleteTaskReply = void | DeleteTaskOp["responses"][403]["content"]["application/json"];
     fastify.delete<{
         Params: DeleteTaskOp["parameters"]["path"];
         Reply: DeleteTaskReply;
     }>("/tasks/:taskId", async (request, reply) => {
         const email = request.user.email;
 
-        const input = mapDeleteTaskRequestToInput(
-            request.params.taskId,
-            email
-        );
+        const input = mapDeleteTaskRequestToInput(request.params.taskId, email);
 
         await deleteTaskUseCase.execute(input);
 
         return reply.code(204).send();
     });
-
-}
+};
