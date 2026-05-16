@@ -21,3 +21,6 @@ yarn-error.log*
 .idea/
 
 /src/generated/prisma
+
+# Cursor – lokale Chat-/Prompt-Historie (nicht versionieren)
+.cursorj/

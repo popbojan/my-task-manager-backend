@@ -1,6 +1,7 @@
 import { before, after, beforeEach } from "node:test";
 import { buildApp } from "../../src/app.js";
 import { startTestDatabase } from "./test-database.js";
+import { StubMailAdapter } from "./stub-mail.adapter.js";
 
 let context: Awaited<ReturnType<typeof buildApp>>;
 let stopDatabase: () => Promise<void>;
@@ -10,7 +11,7 @@ export function setupIntegrationTestContext() {
         const db = await startTestDatabase();
         stopDatabase = db.stop;
 
-        context = await buildApp();
+        context = await buildApp({ mailPort: new StubMailAdapter() });
     });
 
     beforeEach(async () => {

@@ -4,6 +4,7 @@ import type { RequestOtpUseCase } from "../../../domain/auth/request-otp.use-cas
 import type { LoginWithOtpUseCase } from "../../../domain/auth/login-with-otp.use-case";
 import type { AuthRefreshUseCase } from "../../../domain/auth/auth-refresh.use-case";
 import type { LogoutUseCase } from "../../../domain/auth/logout.use-case";
+import { toFastifySchema } from "./openapi/openapi-schema.mapper.js";
 
 type OTPRequest = components["schemas"]["OTPRequest"];
 
@@ -12,22 +13,67 @@ export const authRoutes: FastifyPluginAsync<{
     loginWithOtpUseCase: LoginWithOtpUseCase;
     authRefreshUseCase: AuthRefreshUseCase;
     logoutUseCase: LogoutUseCase;
-
+    openApiSpec: unknown;
 }> = async (fastify, opts) => {
-    const { requestOtpUseCase } = opts;
-    const { loginWithOtpUseCase } = opts;
-    const { authRefreshUseCase } = opts;
-    const { logoutUseCase } = opts;
+    const {
+        requestOtpUseCase,
+        loginWithOtpUseCase,
+        authRefreshUseCase,
+        logoutUseCase,
+        openApiSpec,
+    } = opts;
+
+    const spec = openApiSpec as {
+        paths: Record<
+            string,
+            {
+                post?: {
+                    requestBody?: {
+                        content: {
+                            "application/json": { schema: unknown };
+                        };
+                    };
+                };
+            }
+        >;
+    };
+
+    const requestOtpJson =
+        spec.paths["/auth/request-otp"]?.post?.requestBody?.content?.[
+            "application/json"
+        ];
+    if (requestOtpJson?.schema === undefined) {
+        throw new Error("OpenAPI spec missing POST /auth/request-otp JSON body schema");
+    }
+
+    const loginWithOtpJson =
+        spec.paths["/auth/login-with-otp"]?.post?.requestBody?.content?.[
+            "application/json"
+        ];
+    if (loginWithOtpJson?.schema === undefined) {
+        throw new Error(
+            "OpenAPI spec missing POST /auth/login-with-otp JSON body schema",
+        );
+    }
+
+    const requestOtpBodySchema = toFastifySchema(requestOtpJson.schema);
+
+    const loginWithOtpBodySchema = toFastifySchema(loginWithOtpJson.schema);
 
     fastify.post<{ Body: OTPRequest }>(
         "/auth/request-otp",
+        {
+            schema: {
+                body: requestOtpBodySchema,
+            },
+        },
         async (request) => {
             const { email } = request.body;
 
             await requestOtpUseCase.execute(email);
 
             return { message: "OTP sent to your email" };
-        }
+        },
     );
 
     type LoginWithOtp = operations["loginWithOtp"];
@@ -37,31 +83,39 @@ export const authRoutes: FastifyPluginAsync<{
         Reply:
             | LoginWithOtp["responses"][200]["content"]["application/json"]
             | LoginWithOtp["responses"][401]["content"]["application/json"];
-    }>("/auth/login-with-otp", async (request, reply) => {
-        const { email, otp } = request.body;
+    }>(
+        "/auth/login-with-otp",
+        {
+            schema: {
+                body: loginWithOtpBodySchema,
+            },
+        },
+        async (request, reply) => {
+            const { email, otp } = request.body;
 
-        const tokens = await loginWithOtpUseCase.execute(email, otp);
+            const tokens = await loginWithOtpUseCase.execute(email, otp);
 
-        if (!tokens) {
-            return reply.code(401).send({
-                statusCode: 401,
-                error: "Unauthorized",
-                message: "Invalid or expired OTP",
+            if (!tokens) {
+                return reply.code(401).send({
+                    statusCode: 401,
+                    error: "Unauthorized",
+                    message: "Invalid or expired OTP",
+                });
+            }
+
+            reply.setCookie("refreshToken", tokens.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                path: "/auth",
+                maxAge: tokens.refreshTtlSeconds,
             });
-        }
 
-        reply.setCookie("refreshToken", tokens.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/auth",
-            maxAge: tokens.refreshTtlSeconds,
-        });
-
-        return reply.code(200).send({
-            accessToken: tokens.accessToken,
-        });
-    });
+            return reply.code(200).send({
+                accessToken: tokens.accessToken,
+            });
+        },
+    );
 
     type RefreshOp = operations["refreshAccessToken"];
 
@@ -100,7 +154,7 @@ export const authRoutes: FastifyPluginAsync<{
             });
 
             return reply.code(200).send({ accessToken: result.accessToken });
-        } catch (error) {
+        } catch (_error) {
             return reply.code(401).send({
                 statusCode: 401,
                 error: "Unauthorized",
@@ -136,7 +190,7 @@ export const authRoutes: FastifyPluginAsync<{
                 path: "/auth",
             });
 
-            return reply.code(204);
+            return reply.code(204).send();
         } catch {
             return reply.code(401).send({
                 statusCode: 401,

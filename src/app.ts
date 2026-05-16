@@ -43,12 +43,17 @@ import {GetTaskByIdUseCase} from "./domain/task/get-task-by-id.use-case.js";
 import {DeleteTaskUseCase} from "./domain/task/delete-task.use-case.js";
 
 import {loadOpenApiRuntimeSpec} from "./adapters/driving/web/openapi/openapi-runtime-schema";
-
-// TODO: Cover all AUTH use-cases with Integration Tests
+import type {MailPort} from "./domain/auth/port/mail.port.js";
 // TODO: Add ZOD to the APIs (I need that runtime validation)
+
 // TODO: Add Linter and prettier
 
-export async function buildApp() {
+export type BuildAppOptions = {
+    /** When set (e.g. integration tests), skips real SMTP configuration. */
+    mailPort?: MailPort;
+};
+
+export async function buildApp(options?: BuildAppOptions) {
     const fastify = Fastify({logger: true});
 
     const adapter = new PrismaPg({
@@ -60,14 +65,16 @@ export async function buildApp() {
     const taskPort = new PrismaTaskAdapter(prisma);
     const refreshTokenStore = new InMemoryStoreAdapter();
 
-    const mailAdapter = new MailerAdapter({
-        host: process.env.SMTP_HOST!,
-        port: Number(process.env.SMTP_PORT),
-        secure: process.env.SMTP_SECURE === "true",
-        user: process.env.SMTP_USER!,
-        pass: process.env.SMTP_PASS!,
-        from: process.env.MAIL_FROM!,
-    });
+    const mailAdapter =
+        options?.mailPort ??
+        new MailerAdapter({
+            host: process.env.SMTP_HOST!,
+            port: Number(process.env.SMTP_PORT),
+            secure: process.env.SMTP_SECURE === "true",
+            user: process.env.SMTP_USER!,
+            pass: process.env.SMTP_PASS!,
+            from: process.env.MAIL_FROM!,
+        });
 
     const tokenPort = new JwtTokenAdapter({
         secret: process.env.JWT_SECRET!,
@@ -104,7 +111,7 @@ export async function buildApp() {
     const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);
     const loginWithOtpUseCase = new LoginWithOtpUseCase(generateOtpActivity, generateTokenActivity, issueRefreshTokenActivity);
     const authRefreshUseCase = new AuthRefreshUseCase(generateTokenActivity, validateRefreshTokenActivity, issueRefreshTokenActivity, revokeRefreshTokenActivity);
-    const logoutUseCase = new LogoutUseCase(revokeRefreshTokenActivity);
+    const logoutUseCase = new LogoutUseCase(validateRefreshTokenActivity, revokeRefreshTokenActivity);
     const getAuthenticatedEmailUseCase = new GetAuthenticatedEmailUseCase(validateAccessTokenActivity);
 
     //                  -- task --
@@ -130,6 +137,7 @@ export async function buildApp() {
         loginWithOtpUseCase,
         authRefreshUseCase,
         logoutUseCase,
+        openApiSpec,
     });
 
     await fastify.register(taskRoutes, {
