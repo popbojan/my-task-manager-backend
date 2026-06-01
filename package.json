@@ -4,9 +4,15 @@
     "description": "",
     "main": "index.js",
     "type": "module",
+    "engines": {
+        "node": ">=22"
+    },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "dev": "docker compose up -d && tsx watch src/server.ts",
+        "build": "prisma generate",
+        "start": "tsx src/server.ts",
+        "start:prod": "prisma migrate deploy && tsx src/server.ts",
         "db:up": "docker compose up -d",
         "db:down": "docker compose down",
         "db:seed": "prisma db seed",
@@ -42,6 +48,8 @@
         "jsonwebtoken": "^9.0.3",
         "nodemailer": "^8.0.1",
         "pg": "^8.20.0",
+        "prisma": "^7.4.1",
+        "tsx": "^4.21.0",
         "yaml": "^2.8.4"
     },
     "devDependencies": {
@@ -54,10 +62,8 @@
         "eslint-config-prettier": "^10.1.8",
         "openapi-typescript": "^7.12.0",
         "prettier": "^3.8.3",
-        "prisma": "^7.4.1",
         "testcontainers": "^11.14.0",
         "ts-node": "^10.9.2",
-        "tsx": "^4.21.0",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.59.3"
     }

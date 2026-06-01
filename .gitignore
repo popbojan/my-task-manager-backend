@@ -15,9 +15,6 @@ yarn-error.log*
 # Mac-Systemdateien
 .DS_Store
 
-# Prisma (falls du es nutzt)
-/prisma/migrations/
-
 .idea/
 
 /src/generated/prisma
