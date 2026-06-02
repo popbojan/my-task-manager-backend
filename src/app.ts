@@ -9,7 +9,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { authRoutes } from "./adapters/driving/web/auth.route.js";
 import { taskRoutes } from "./adapters/driving/web/task.route.js";
 
-import { MailerAdapter } from "./adapters/driven/mail/mailer.adapter.js";
+import { createMailAdapter } from "./adapters/driven/mail/create-mail.adapter.js";
 import { JwtTokenAdapter } from "./adapters/driven/security/jwt-token.adapter.js";
 import { HmacOtpAdapter } from "./adapters/driven/security/hmac-otp.adapter.js";
 import { CryptoAdapter } from "./adapters/driven/security/crypto.adapter.js";
@@ -62,16 +62,7 @@ export async function buildApp(options?: BuildAppOptions) {
     const taskPort = new PrismaTaskAdapter(prisma);
     const refreshTokenStore = new InMemoryStoreAdapter();
 
-    const mailAdapter =
-        options?.mailPort ??
-        new MailerAdapter({
-            host: process.env.SMTP_HOST!,
-            port: Number(process.env.SMTP_PORT),
-            secure: process.env.SMTP_SECURE === "true",
-            user: process.env.SMTP_USER!,
-            pass: process.env.SMTP_PASS!,
-            from: process.env.MAIL_FROM!,
-        });
+    const mailAdapter = options?.mailPort ?? createMailAdapter();
 
     const tokenPort = new JwtTokenAdapter({
         secret: process.env.JWT_SECRET!,
