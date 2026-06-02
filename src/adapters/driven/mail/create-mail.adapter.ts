@@ -14,6 +14,12 @@ export function createMailAdapter(): MailPort {
         return new ResendMailAdapter({ apiKey: resendApiKey, from });
     }
 
+    if (process.env.NODE_ENV === "production") {
+        throw new Error(
+            "RESEND_API_KEY is required in production (Railway blocks SMTP ports 587/465)",
+        );
+    }
+
     return new MailerAdapter({
         host: process.env.SMTP_HOST!,
         port: Number(process.env.SMTP_PORT),

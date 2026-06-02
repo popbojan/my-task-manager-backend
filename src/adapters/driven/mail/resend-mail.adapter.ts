@@ -31,6 +31,7 @@ export class ResendMailAdapter implements MailPort {
         <p>This code is valid for <b>4 minutes</b>.</p>
       `,
             }),
+            signal: AbortSignal.timeout(15_000),
         });
 
         if (response.ok) {
