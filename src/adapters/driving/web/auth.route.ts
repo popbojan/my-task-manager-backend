@@ -8,6 +8,19 @@ import { toFastifySchema } from "./openapi/openapi-schema.mapper.js";
 
 type OTPRequest = components["schemas"]["OTPRequest"];
 
+function refreshTokenCookieOptions(maxAge?: number) {
+    const isProduction = process.env.NODE_ENV === "production";
+
+    return {
+        httpOnly: true,
+        secure: isProduction,
+        // Cross-origin frontend/backend (e.g. separate Railway domains) requires SameSite=None.
+        sameSite: (isProduction ? "none" : "lax") as "none" | "lax" | "strict",
+        path: "/auth",
+        ...(maxAge !== undefined ? { maxAge } : {}),
+    };
+}
+
 export const authRoutes: FastifyPluginAsync<{
     requestOtpUseCase: RequestOtpUseCase;
     loginWithOtpUseCase: LoginWithOtpUseCase;
@@ -97,13 +110,11 @@ export const authRoutes: FastifyPluginAsync<{
                 });
             }
 
-            reply.setCookie("refreshToken", tokens.refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
-                path: "/auth",
-                maxAge: tokens.refreshTtlSeconds,
-            });
+            reply.setCookie(
+                "refreshToken",
+                tokens.refreshToken,
+                refreshTokenCookieOptions(tokens.refreshTtlSeconds),
+            );
 
             return reply.code(200).send({
                 accessToken: tokens.accessToken,
@@ -139,13 +150,11 @@ export const authRoutes: FastifyPluginAsync<{
                 });
             }
 
-            reply.setCookie("refreshToken", result.refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
-                path: "/auth",
-                maxAge: result.refreshTtlSeconds,
-            });
+            reply.setCookie(
+                "refreshToken",
+                result.refreshToken,
+                refreshTokenCookieOptions(result.refreshTtlSeconds),
+            );
 
             return reply.code(200).send({ accessToken: result.accessToken });
         } catch {
@@ -175,12 +184,7 @@ export const authRoutes: FastifyPluginAsync<{
         try {
             await logoutUseCase.execute(refreshToken);
 
-            reply.clearCookie("refreshToken", {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
-                path: "/auth",
-            });
+            reply.clearCookie("refreshToken", refreshTokenCookieOptions());
 
             return reply.code(204).send();
         } catch {
