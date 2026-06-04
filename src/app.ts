@@ -128,8 +128,19 @@ export async function buildApp(options?: BuildAppOptions) {
 
     await fastify.register(cookie);
 
+    const allowedOrigins = (
+        process.env.CORS_ORIGIN ?? "http://localhost:5173"
+    ).split(",");
+
     await fastify.register(cors, {
-        origin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
+        origin: (origin, cb) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                cb(null, true);
+                return;
+            }
+
+            cb(new Error("Not allowed by CORS"), false);
+        },
         credentials: true,
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     });
