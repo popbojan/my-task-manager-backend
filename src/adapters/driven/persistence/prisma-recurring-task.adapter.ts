@@ -121,35 +121,6 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
         });
     }
 
-    private async updateTask(input: UpdateRecurringTaskInput) {
-        const {
-            recurringTaskId,
-            email: _discardedOwnerEmail,
-            title,
-            description,
-            status,
-            frequency,
-            streakCount,
-            lastCompletedAt,
-            lastResetAt,
-            nextResetAt,
-        } = input;
-
-        return this.prisma.recurringTask.update({
-            where: { id: recurringTaskId },
-            data: {
-                ...(title !== undefined && { title }),
-                ...(description !== undefined && { description }),
-                ...(status !== undefined && { status }),
-                ...(frequency !== undefined && { frequency }),
-                ...(streakCount !== undefined && { streakCount }),
-                ...(lastCompletedAt !== undefined && { lastCompletedAt }),
-                ...(lastResetAt !== undefined && { lastResetAt }),
-                ...(nextResetAt !== undefined && { nextResetAt }),
-            },
-        });
-    }
-
     async resetDueRecurringTasks(input: {
         taskUpdates: UpdateRecurringTaskInput[];
         progressUpdates: UpdateRecurringTaskProgressInput[];
