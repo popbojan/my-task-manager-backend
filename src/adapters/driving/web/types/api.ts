@@ -109,6 +109,72 @@ export interface paths {
         patch: operations["updateTask"];
         trace?: never;
     };
+    "/recurring-tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get recurring tasks for the authenticated user
+         * @description Returns all recurring tasks owned by the authenticated user.
+         */
+        get: operations["getRecurringTasks"];
+        put?: never;
+        /**
+         * Create a new recurring task
+         * @description Creates a daily, weekly, or monthly recurring task.
+         */
+        post: operations["createRecurringTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recurring-tasks/{recurringTaskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a single recurring task */
+        get: operations["getRecurringTask"];
+        put?: never;
+        post?: never;
+        /** Delete a recurring task */
+        delete: operations["deleteRecurringTask"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a recurring task
+         * @description Updates title, description, status, or frequency of a recurring task.
+         */
+        patch: operations["updateRecurringTask"];
+        trace?: never;
+    };
+    "/recurring-task-progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get recurring task progress for the authenticated user
+         * @description Returns the global streak counter for recurring tasks.
+         */
+        get: operations["getRecurringTaskProgress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -182,6 +248,86 @@ export interface components {
             priority?: components["schemas"]["TaskPriority"];
             /** Format: date-time */
             deadline?: string | null;
+        };
+        /**
+         * @description Status of a recurring task. Recurring tasks do not have review.
+         * @enum {string}
+         */
+        RecurringTaskStatus: "todo" | "in_progress" | "done";
+        /**
+         * @description Defines how often the task repeats.
+         * @enum {string}
+         */
+        RecurringFrequency: "daily" | "weekly" | "monthly";
+        RecurringTask: {
+            /** Format: uuid */
+            id: string;
+            /** @example Learning German */
+            title: string;
+            /** @example Reading or writing for 30 minutes */
+            description?: string | null;
+            status: components["schemas"]["RecurringTaskStatus"];
+            frequency: components["schemas"]["RecurringFrequency"];
+            /**
+             * @description Number of successful repetitions in a row.
+             * @example 7
+             */
+            streakCount: number;
+            /**
+             * Format: date-time
+             * @description Last time this recurring task was marked as done.
+             * @example 2026-06-06T18:30:00.000Z
+             */
+            lastCompletedAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Last time the backend reset this task back to todo.
+             * @example 2026-06-07T00:00:00.000Z
+             */
+            lastResetAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Next planned reset time calculated by the backend.
+             * @example 2026-06-07T00:00:00.000Z
+             */
+            nextResetAt: string;
+            /** Format: email */
+            email: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateRecurringTaskRequest: {
+            /** @example Learning German */
+            title: string;
+            /** @example Reading or writing for 30 minutes */
+            description?: string | null;
+            frequency: components["schemas"]["RecurringFrequency"];
+        };
+        UpdateRecurringTaskRequest: {
+            /** @example Learning German */
+            title?: string;
+            description?: string | null;
+            status?: components["schemas"]["RecurringTaskStatus"];
+            frequency?: components["schemas"]["RecurringFrequency"];
+        };
+        RecurringTaskProgress: {
+            /** Format: uuid */
+            id: string;
+            /** Format: email */
+            email: string;
+            /**
+             * @description Number of periods in a row where all recurring tasks were completed.
+             * @example 4
+             */
+            allTasksStreak: number;
+            /**
+             * Format: date-time
+             * @description Last time the backend checked whether all recurring tasks were completed.
+             * @example 2026-06-07T00:00:00.000Z
+             */
+            lastCheckedAt?: string | null;
         };
     };
     responses: never;
@@ -570,6 +716,255 @@ export interface operations {
             };
             /** @description Task not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getRecurringTasks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of recurring tasks */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringTask"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createRecurringTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRecurringTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description Recurring task created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringTask"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getRecurringTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurringTaskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recurring task found */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringTask"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Recurring task not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteRecurringTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurringTaskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recurring task deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    updateRecurringTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurringTaskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRecurringTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description Recurring task updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringTask"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Recurring task not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getRecurringTaskProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recurring task progress */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringTaskProgress"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
