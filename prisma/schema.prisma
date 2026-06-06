@@ -38,3 +38,49 @@ model Task {
   @@index([priority])
   @@index([deadline])
 }
+
+enum RecurringTaskStatus {
+  todo
+  in_progress
+  done
+}
+
+enum RecurringFrequency {
+  daily
+  weekly
+  monthly
+}
+
+model RecurringTask {
+  id          String              @id @default(uuid())
+  title       String
+  description String?
+
+  status      RecurringTaskStatus @default(todo)
+  frequency   RecurringFrequency
+
+  streakCount     Int       @default(0)
+  lastCompletedAt DateTime?
+  lastResetAt     DateTime?
+  nextResetAt     DateTime
+
+  email       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([frequency])
+  @@index([nextResetAt])
+}
+
+model RecurringTaskProgress {
+  id             String   @id @default(uuid())
+  email          String   @unique
+
+  allTasksStreak Int      @default(0)
+  lastCheckedAt  DateTime?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
