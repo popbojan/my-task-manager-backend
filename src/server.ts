@@ -1,7 +1,12 @@
 import "dotenv/config";
 import { buildApp } from "./app.js";
+import { startRecurringTaskResetCron } from "./adapters/driven/scheduling/recurring-task-reset.cron.js";
 
-const { fastify, prisma } = await buildApp();
+const { fastify, prisma, resetDueRecurringTasksUseCase } = await buildApp();
+const stopRecurringTaskResetCron = startRecurringTaskResetCron(
+    resetDueRecurringTasksUseCase,
+    fastify.log,
+);
 
 // --- Start the App ---
 try {
@@ -19,6 +24,7 @@ try {
 // --- Shut Down the App ---
 process.on("SIGINT", async () => {
     fastify.log.info("Shutting down...");
+    stopRecurringTaskResetCron();
     await fastify.close();
     await prisma.$disconnect();
     process.exit(0);

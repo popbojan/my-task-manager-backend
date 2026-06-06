@@ -15,7 +15,11 @@ export function setupIntegrationTestContext() {
     });
 
     beforeEach(async () => {
-        await context.prisma.$transaction([context.prisma.task.deleteMany()]);
+        await context.prisma.$transaction([
+            context.prisma.recurringTaskProgress.deleteMany(),
+            context.prisma.recurringTask.deleteMany(),
+            context.prisma.task.deleteMany(),
+        ]);
     });
 
     after(async () => {

@@ -31,6 +31,8 @@ CREATE TABLE "RecurringTaskProgress" (
                                          "email" TEXT NOT NULL,
                                          "allTasksStreak" INTEGER NOT NULL DEFAULT 0,
                                          "lastCheckedAt" TIMESTAMP(3),
+                                         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                         "updatedAt" TIMESTAMP(3) NOT NULL,
                                          CONSTRAINT "RecurringTaskProgress_pkey" PRIMARY KEY ("id")
 );
 

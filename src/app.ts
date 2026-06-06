@@ -49,6 +49,14 @@ import { UpdateRecurringTaskActivity } from "./domain/recurring-task/activity/up
 import { GetRecurringTaskByIdActivity } from "./domain/recurring-task/activity/get-recurring-task-by-id.activity.js";
 import { DeleteRecurringTaskActivity } from "./domain/recurring-task/activity/delete-recurring-task.activity.js";
 import { GetRecurringTaskProgressActivity } from "./domain/recurring-task/activity/get-recurring-task-progress.activity.js";
+import { ResetDueRecurringTasksActivity } from "./domain/recurring-task/activity/reset-due-recurring-tasks.activity.js";
+import { CalculateNextResetAtActivity } from "./domain/recurring-task/activity/calculate-next-reset-at.activity.js";
+import { AdjustStreakOnStatusChangeActivity } from "./domain/recurring-task/activity/adjust-streak-on-status-change.activity.js";
+import { ResolveAllTasksStreakActivity } from "./domain/recurring-task/activity/resolve-all-tasks-streak.activity.js";
+import { AreAllDailyTasksDoneActivity } from "./domain/recurring-task/activity/are-all-daily-tasks-done.activity.js";
+import { BuildRecurringTaskResetUpdateActivity } from "./domain/recurring-task/activity/build-recurring-task-reset-update.activity.js";
+import { FindDueRecurringTasksActivity } from "./domain/recurring-task/activity/find-due-recurring-tasks.activity.js";
+import { BuildRecurringTaskProgressUpdatesActivity } from "./domain/recurring-task/activity/build-recurring-task-progress-updates.activity.js";
 
 import { GetRecurringTasksUseCase } from "./domain/recurring-task/get-recurring-tasks.use-case.js";
 import { CreateRecurringTaskUseCase } from "./domain/recurring-task/create-recurring-task.use-case.js";
@@ -56,6 +64,7 @@ import { UpdateRecurringTaskUseCase } from "./domain/recurring-task/update-recur
 import { GetRecurringTaskByIdUseCase } from "./domain/recurring-task/get-recurring-task-by-id.use-case.js";
 import { DeleteRecurringTaskUseCase } from "./domain/recurring-task/delete-recurring-task.use-case.js";
 import { GetRecurringTaskProgressUseCase } from "./domain/recurring-task/get-recurring-task-progress.use-case.js";
+import { ResetDueRecurringTasksUseCase } from "./domain/recurring-task/reset-due-recurring-tasks.use-case.js";
 
 import { loadOpenApiRuntimeSpec } from "./adapters/driving/web/openapi/openapi-runtime-schema";
 import type { OpenApiPathsDocument } from "./adapters/driving/web/openapi/openapi-paths-document.types.js";
@@ -76,7 +85,11 @@ export async function buildApp(options?: BuildAppOptions) {
     const prisma = new PrismaClient({ adapter });
 
     const taskPort = new PrismaTaskAdapter(prisma);
-    const recurringTaskPort = new PrismaRecurringTaskAdapter(prisma);
+    const resolveAllTasksStreakActivity = new ResolveAllTasksStreakActivity();
+    const recurringTaskPort = new PrismaRecurringTaskAdapter(
+        prisma,
+        resolveAllTasksStreakActivity,
+    );
     const refreshTokenStore = new InMemoryStoreAdapter();
 
     const mailAdapter = options?.mailPort ?? createMailAdapter();
@@ -119,10 +132,22 @@ export async function buildApp(options?: BuildAppOptions) {
         recurringTaskPort,
     );
     const createRecurringTaskActivity = new CreateRecurringTaskActivity(recurringTaskPort);
-    const updateRecurringTaskActivity = new UpdateRecurringTaskActivity(recurringTaskPort);
     const getRecurringTaskByIdActivity = new GetRecurringTaskByIdActivity(recurringTaskPort);
     const deleteRecurringTaskActivity = new DeleteRecurringTaskActivity(recurringTaskPort);
     const getRecurringTaskProgressActivity = new GetRecurringTaskProgressActivity(recurringTaskPort);
+    const calculateNextResetAtActivity = new CalculateNextResetAtActivity();
+    const adjustStreakOnStatusChangeActivity = new AdjustStreakOnStatusChangeActivity();
+    const updateRecurringTaskActivity = new UpdateRecurringTaskActivity(recurringTaskPort);
+    const areAllDailyTasksDoneActivity = new AreAllDailyTasksDoneActivity();
+    const buildRecurringTaskResetUpdateActivity = new BuildRecurringTaskResetUpdateActivity(
+        calculateNextResetAtActivity,
+    );
+    const findDueRecurringTasksActivity = new FindDueRecurringTasksActivity(recurringTaskPort);
+    const buildRecurringTaskProgressUpdatesActivity = new BuildRecurringTaskProgressUpdatesActivity(
+        recurringTaskPort,
+        areAllDailyTasksDoneActivity,
+    );
+    const resetDueRecurringTasksActivity = new ResetDueRecurringTasksActivity(recurringTaskPort);
 
     // --- Use Cases ---
     //                  -- auth --
@@ -157,10 +182,15 @@ export async function buildApp(options?: BuildAppOptions) {
     const getRecurringTasksUseCase = new GetRecurringTasksUseCase(
         getRelevantRecurringTaskActivity,
     );
-    const createRecurringTaskUseCase = new CreateRecurringTaskUseCase(createRecurringTaskActivity);
+    const createRecurringTaskUseCase = new CreateRecurringTaskUseCase(
+        createRecurringTaskActivity,
+        calculateNextResetAtActivity,
+    );
     const updateRecurringTaskUseCase = new UpdateRecurringTaskUseCase(
         getRecurringTaskByIdActivity,
         updateRecurringTaskActivity,
+        adjustStreakOnStatusChangeActivity,
+        calculateNextResetAtActivity,
     );
     const getRecurringTaskByIdUseCase = new GetRecurringTaskByIdUseCase(
         getRecurringTaskByIdActivity,
@@ -171,6 +201,12 @@ export async function buildApp(options?: BuildAppOptions) {
     );
     const getRecurringTaskProgressUseCase = new GetRecurringTaskProgressUseCase(
         getRecurringTaskProgressActivity,
+    );
+    const resetDueRecurringTasksUseCase = new ResetDueRecurringTasksUseCase(
+        findDueRecurringTasksActivity,
+        buildRecurringTaskResetUpdateActivity,
+        buildRecurringTaskProgressUpdatesActivity,
+        resetDueRecurringTasksActivity,
     );
 
     await fastify.register(cookie);
@@ -224,5 +260,5 @@ export async function buildApp(options?: BuildAppOptions) {
         openApiSpec,
     });
 
-    return { fastify, prisma };
+    return { fastify, prisma, resetDueRecurringTasksUseCase };
 }
