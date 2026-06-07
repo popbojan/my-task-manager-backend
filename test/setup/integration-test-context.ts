@@ -35,5 +35,8 @@ export function setupIntegrationTestContext() {
         get prisma() {
             return context.prisma;
         },
+        get resetDueRecurringTasksUseCase() {
+            return context.resetDueRecurringTasksUseCase;
+        },
     };
 }
