@@ -57,6 +57,7 @@ import { AreAllDailyTasksDoneActivity } from "./domain/recurring-task/activity/a
 import { BuildRecurringTaskResetUpdateActivity } from "./domain/recurring-task/activity/build-recurring-task-reset-update.activity.js";
 import { FindDueRecurringTasksActivity } from "./domain/recurring-task/activity/find-due-recurring-tasks.activity.js";
 import { BuildRecurringTaskProgressUpdatesActivity } from "./domain/recurring-task/activity/build-recurring-task-progress-updates.activity.js";
+import { GetCurrentTimeInTimezoneActivity } from "./domain/recurring-task/activity/get-current-time-in-timezone.activity.js";
 
 import { GetRecurringTasksUseCase } from "./domain/recurring-task/get-recurring-tasks.use-case.js";
 import { CreateRecurringTaskUseCase } from "./domain/recurring-task/create-recurring-task.use-case.js";
@@ -148,6 +149,7 @@ export async function buildApp(options?: BuildAppOptions) {
         areAllDailyTasksDoneActivity,
     );
     const resetDueRecurringTasksActivity = new ResetDueRecurringTasksActivity(recurringTaskPort);
+    const getCurrentTimeInTimezoneActivity = new GetCurrentTimeInTimezoneActivity();
 
     // --- Use Cases ---
     //                  -- auth --
@@ -207,6 +209,7 @@ export async function buildApp(options?: BuildAppOptions) {
         buildRecurringTaskResetUpdateActivity,
         buildRecurringTaskProgressUpdatesActivity,
         resetDueRecurringTasksActivity,
+        getCurrentTimeInTimezoneActivity,
     );
 
     await fastify.register(cookie);

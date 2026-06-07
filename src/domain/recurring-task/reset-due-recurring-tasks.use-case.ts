@@ -2,6 +2,7 @@ import type { FindDueRecurringTasksActivity } from "./activity/find-due-recurrin
 import type { BuildRecurringTaskResetUpdateActivity } from "./activity/build-recurring-task-reset-update.activity";
 import type { BuildRecurringTaskProgressUpdatesActivity } from "./activity/build-recurring-task-progress-updates.activity";
 import type { ResetDueRecurringTasksActivity } from "./activity/reset-due-recurring-tasks.activity";
+import type { GetCurrentTimeInTimezoneActivity } from "./activity/get-current-time-in-timezone.activity";
 
 export class ResetDueRecurringTasksUseCase {
     constructor(
@@ -9,23 +10,22 @@ export class ResetDueRecurringTasksUseCase {
         private readonly buildRecurringTaskResetUpdateActivity: BuildRecurringTaskResetUpdateActivity,
         private readonly buildRecurringTaskProgressUpdatesActivity: BuildRecurringTaskProgressUpdatesActivity,
         private readonly resetDueRecurringTasksActivity: ResetDueRecurringTasksActivity,
+        private readonly getCurrentTimeInTimezoneActivity: GetCurrentTimeInTimezoneActivity,
     ) {}
 
-    async execute(asOf: Date = new Date()) {
-        console.log(
-            "ResetDueRecurringTasksUseCase.execute",
-            asOf.toISOString(),
-        );
-        const dueTasks = await this.findDueRecurringTasksActivity.execute(asOf);
+    async execute() {
+        const resetAt = this.getCurrentTimeInTimezoneActivity.execute();
+        console.log('findDueForReset resetAt:' + resetAt);
+        const dueTasks = await this.findDueRecurringTasksActivity.execute(resetAt);
 
         const taskUpdates = dueTasks.map((task) =>
-            this.buildRecurringTaskResetUpdateActivity.execute(task, asOf),
+            this.buildRecurringTaskResetUpdateActivity.execute(task, resetAt),
         );
 
         const progressUpdates =
             await this.buildRecurringTaskProgressUpdatesActivity.execute(
                 dueTasks,
-                asOf,
+                resetAt,
             );
 
         return this.resetDueRecurringTasksActivity.execute({

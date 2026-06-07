@@ -15,7 +15,7 @@ export function startRecurringTaskResetCron(
     }
 
     const job = cron.schedule(
-        "30 13 * * *",
+        "13 14 * * *",
         async () => {
             try {
                 const result = await resetDueRecurringTasksUseCase.execute();
