@@ -29,6 +29,10 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
     }
 
     async findDueForReset(asOf: Date) {
+        console.log(
+            "findDueForReset asOf:",
+            asOf.toISOString(),
+        );
         return this.prisma.recurringTask.findMany({
             where: {
                 nextResetAt: {

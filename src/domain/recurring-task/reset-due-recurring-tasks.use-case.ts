@@ -12,6 +12,10 @@ export class ResetDueRecurringTasksUseCase {
     ) {}
 
     async execute(asOf: Date = new Date()) {
+        console.log(
+            "ResetDueRecurringTasksUseCase.execute",
+            asOf.toISOString(),
+        );
         const dueTasks = await this.findDueRecurringTasksActivity.execute(asOf);
 
         const taskUpdates = dueTasks.map((task) =>
