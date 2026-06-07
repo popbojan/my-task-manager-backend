@@ -33,14 +33,24 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
             "findDueForReset asOf:",
             asOf.toISOString(),
         );
-        return this.prisma.recurringTask.findMany({
+
+        const dueTasks = await this.prisma.recurringTask.findMany({
             where: {
                 nextResetAt: {
                     lte: asOf,
                 },
             },
-            orderBy: { nextResetAt: "asc" },
+            orderBy: {
+                nextResetAt: "asc",
+            },
         });
+
+        console.log(
+            "findDueForReset dueTasks:",
+            dueTasks.length,
+        );
+
+        return dueTasks;
     }
 
     async findById(recurringTaskId: string) {
