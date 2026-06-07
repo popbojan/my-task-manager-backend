@@ -15,7 +15,6 @@ export class ResetDueRecurringTasksUseCase {
 
     async execute() {
         const resetAt = this.getCurrentTimeInTimezoneActivity.execute();
-        console.log('findDueForReset resetAt:' + resetAt);
         const dueTasks = await this.findDueRecurringTasksActivity.execute(resetAt);
 
         const taskUpdates = dueTasks.map((task) =>

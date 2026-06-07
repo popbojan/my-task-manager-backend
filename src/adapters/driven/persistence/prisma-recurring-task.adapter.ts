@@ -29,12 +29,7 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
     }
 
     async findDueForReset(asOf: Date) {
-        console.log(
-            "findDueForReset asOf:",
-            asOf.toISOString(),
-        );
-
-        const dueTasks = await this.prisma.recurringTask.findMany({
+        return await this.prisma.recurringTask.findMany({
             where: {
                 nextResetAt: {
                     lte: asOf,
@@ -44,13 +39,6 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
                 nextResetAt: "asc",
             },
         });
-
-        console.log(
-            "findDueForReset dueTasks:",
-            dueTasks.length,
-        );
-
-        return dueTasks;
     }
 
     async findById(recurringTaskId: string) {
