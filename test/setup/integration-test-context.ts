@@ -8,6 +8,8 @@ let stopDatabase: () => Promise<void>;
 
 export function setupIntegrationTestContext() {
     before(async () => {
+        process.env.RECURRING_TASK_RESET_TZ ??= "Europe/Berlin";
+
         const db = await startTestDatabase();
         stopDatabase = db.stop;
 

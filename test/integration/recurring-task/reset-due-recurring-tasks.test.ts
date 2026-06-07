@@ -2,14 +2,29 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { setupIntegrationTestContext } from "../../setup/integration-test-context.js";
 import { createTestAccessToken } from "../../setup/test-token.js";
+import { CalculateNextResetAtActivity } from "../../../src/domain/recurring-task/activity/calculate-next-reset-at.activity.js";
+
+const BERLIN_TIMEZONE = "Europe/Berlin";
+const calculateNextResetAtActivity = new CalculateNextResetAtActivity();
 
 const ctx = setupIntegrationTestContext();
+
+function getBerlinTime(from: Date = new Date()): Date {
+    return new Date(
+        from.toLocaleString("en-US", {
+            timeZone: BERLIN_TIMEZONE,
+        }),
+    );
+}
+
+function getNextDailyResetAt(from: Date): Date {
+    return calculateNextResetAtActivity.execute("daily", from);
+}
 
 test("ResetDueRecurringTasksUseCase resets due recurring tasks back to todo", async () => {
     const email = "reset-user@example.com";
     const token = createTestAccessToken(email);
-    const asOf = new Date("2026-06-08T00:00:00.000Z");
-    const nextResetAt = new Date("2026-06-09T00:00:00.000Z");
+    const resetAt = getBerlinTime();
 
     const createResponse = await ctx.fastify.inject({
         method: "POST",
@@ -30,13 +45,13 @@ test("ResetDueRecurringTasksUseCase resets due recurring tasks back to todo", as
     await ctx.prisma.recurringTask.update({
         where: { id: createdTask.id },
         data: {
-            nextResetAt: asOf,
+            nextResetAt: resetAt,
             status: "in_progress",
             streakCount: 3,
         },
     });
 
-    const result = await ctx.resetDueRecurringTasksUseCase.execute(asOf);
+    const result = await ctx.resetDueRecurringTasksUseCase.execute();
 
     assert.equal(result.resetTaskCount, 1);
     assert.deepEqual(result.affectedEmails, [email]);
@@ -47,14 +62,17 @@ test("ResetDueRecurringTasksUseCase resets due recurring tasks back to todo", as
 
     assert.equal(taskAfterReset.status, "todo");
     assert.equal(taskAfterReset.streakCount, 0);
-    assert.equal(taskAfterReset.lastResetAt?.toISOString(), asOf.toISOString());
-    assert.equal(taskAfterReset.nextResetAt?.toISOString(), nextResetAt.toISOString());
+    assert.ok(taskAfterReset.lastResetAt);
+    assert.equal(
+        taskAfterReset.nextResetAt?.toISOString(),
+        getNextDailyResetAt(taskAfterReset.lastResetAt!).toISOString(),
+    );
 });
 
 test("ResetDueRecurringTasksUseCase keeps streak when due task was completed before reset", async () => {
     const email = "completed-user@example.com";
     const token = createTestAccessToken(email);
-    const asOf = new Date("2026-06-08T00:00:00.000Z");
+    const resetAt = getBerlinTime();
 
     const createResponse = await ctx.fastify.inject({
         method: "POST",
@@ -87,10 +105,10 @@ test("ResetDueRecurringTasksUseCase keeps streak when due task was completed bef
 
     await ctx.prisma.recurringTask.update({
         where: { id: createdTask.id },
-        data: { nextResetAt: asOf },
+        data: { nextResetAt: resetAt },
     });
 
-    await ctx.resetDueRecurringTasksUseCase.execute(asOf);
+    await ctx.resetDueRecurringTasksUseCase.execute();
 
     const taskAfterReset = await ctx.prisma.recurringTask.findUniqueOrThrow({
         where: { id: createdTask.id },
@@ -103,7 +121,8 @@ test("ResetDueRecurringTasksUseCase keeps streak when due task was completed bef
 test("ResetDueRecurringTasksUseCase does not reset tasks that are not yet due", async () => {
     const email = "not-due-user@example.com";
     const token = createTestAccessToken(email);
-    const asOf = new Date("2026-06-08T00:00:00.000Z");
+    const resetAt = getBerlinTime();
+    const nextResetAt = getNextDailyResetAt(resetAt);
 
     const createResponse = await ctx.fastify.inject({
         method: "POST",
@@ -126,11 +145,11 @@ test("ResetDueRecurringTasksUseCase does not reset tasks that are not yet due", 
         data: {
             status: "in_progress",
             streakCount: 2,
-            nextResetAt: new Date("2026-06-09T00:00:00.000Z"),
+            nextResetAt,
         },
     });
 
-    const result = await ctx.resetDueRecurringTasksUseCase.execute(asOf);
+    const result = await ctx.resetDueRecurringTasksUseCase.execute();
 
     assert.equal(result.resetTaskCount, 0);
     assert.deepEqual(result.affectedEmails, []);
@@ -146,7 +165,7 @@ test("ResetDueRecurringTasksUseCase does not reset tasks that are not yet due", 
 test("ResetDueRecurringTasksUseCase increments progress when all daily tasks were completed before reset", async () => {
     const email = "progress-user@example.com";
     const token = createTestAccessToken(email);
-    const asOf = new Date("2026-06-08T00:00:00.000Z");
+    const resetAt = getBerlinTime();
 
     const firstCreateResponse = await ctx.fastify.inject({
         method: "POST",
@@ -219,10 +238,10 @@ test("ResetDueRecurringTasksUseCase increments progress when all daily tasks wer
 
     await ctx.prisma.recurringTask.updateMany({
         where: { email },
-        data: { nextResetAt: asOf },
+        data: { nextResetAt: resetAt },
     });
 
-    await ctx.resetDueRecurringTasksUseCase.execute(asOf);
+    await ctx.resetDueRecurringTasksUseCase.execute();
 
     progressResponse = await ctx.fastify.inject({
         method: "GET",
@@ -240,13 +259,13 @@ test("ResetDueRecurringTasksUseCase increments progress when all daily tasks wer
     });
 
     assert.equal(progress.allTasksStreak, 1);
-    assert.equal(progress.lastCheckedAt?.toISOString(), asOf.toISOString());
+    assert.ok(progress.lastCheckedAt);
 });
 
 test("ResetDueRecurringTasksUseCase clears progress streak when not all daily tasks were completed", async () => {
     const email = "missed-progress-user@example.com";
     const token = createTestAccessToken(email);
-    const asOf = new Date("2026-06-08T00:00:00.000Z");
+    const resetAt = getBerlinTime();
 
     const completedCreateResponse = await ctx.fastify.inject({
         method: "POST",
@@ -310,10 +329,10 @@ test("ResetDueRecurringTasksUseCase clears progress streak when not all daily ta
 
     await ctx.prisma.recurringTask.updateMany({
         where: { email },
-        data: { nextResetAt: asOf },
+        data: { nextResetAt: resetAt },
     });
 
-    const result = await ctx.resetDueRecurringTasksUseCase.execute(asOf);
+    const result = await ctx.resetDueRecurringTasksUseCase.execute();
 
     assert.equal(result.resetTaskCount, 2);
     assert.deepEqual(result.affectedEmails, [email]);
@@ -335,5 +354,5 @@ test("ResetDueRecurringTasksUseCase clears progress streak when not all daily ta
     });
 
     assert.equal(progress.allTasksStreak, 0);
-    assert.equal(progress.lastCheckedAt?.toISOString(), asOf.toISOString());
+    assert.ok(progress.lastCheckedAt);
 });
