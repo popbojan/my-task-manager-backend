@@ -1,0 +1,67 @@
+name: CI/CD
+
+on:
+    push:
+        branches:
+            - master
+
+concurrency:
+    group: railway-production
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    ci:
+        name: CI
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - name: Configure git for GitHub dependencies
+              run: |
+                  git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+                  git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Generate Prisma client
+              run: npm run build
+
+            - name: Typecheck
+              run: npx tsc --noEmit
+
+            - name: Lint
+              run: npm run lint
+
+            - name: Integration tests
+              run: npm run test:integration
+
+    deploy:
+        name: Deploy to Railway
+        runs-on: ubuntu-latest
+        needs: ci
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Deploy to Railway
+              env:
+                  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+              run: |
+                  npx @railway/cli@latest up --ci \
+                    --project 5413313a-2834-446d-bf3a-f2fddc90271f \
+                    --service f15ea0e7-f7de-450f-890e-a25decaac90a \
+                    --environment production
