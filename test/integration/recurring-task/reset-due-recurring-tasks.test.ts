@@ -69,6 +69,60 @@ test("ResetDueRecurringTasksUseCase resets due recurring tasks back to todo", as
     );
 });
 
+test("ResetDueRecurringTasksUseCase resets in_progress recurring tasks from Bearbeitung back to todo", async () => {
+    const email = "in-progress-user@example.com";
+    const token = createTestAccessToken(email);
+    const resetAt = getBerlinTime();
+
+    const createResponse = await ctx.fastify.inject({
+        method: "POST",
+        url: "/recurring-tasks",
+        headers: {
+            authorization: `Bearer ${token}`,
+        },
+        payload: {
+            title: "Task in Bearbeitung",
+            frequency: "daily",
+        },
+    });
+
+    assert.equal(createResponse.statusCode, 201);
+
+    const createdTask = createResponse.json();
+
+    const updateResponse = await ctx.fastify.inject({
+        method: "PATCH",
+        url: `/recurring-tasks/${createdTask.id}`,
+        headers: {
+            authorization: `Bearer ${token}`,
+        },
+        payload: {
+            status: "in_progress",
+        },
+    });
+
+    assert.equal(updateResponse.statusCode, 200);
+    assert.equal(updateResponse.json().status, "in_progress");
+
+    await ctx.prisma.recurringTask.update({
+        where: { id: createdTask.id },
+        data: { nextResetAt: resetAt },
+    });
+
+    const result = await ctx.resetDueRecurringTasksUseCase.execute();
+
+    assert.equal(result.resetTaskCount, 1);
+    assert.deepEqual(result.affectedEmails, [email]);
+
+    const taskAfterReset = await ctx.prisma.recurringTask.findUniqueOrThrow({
+        where: { id: createdTask.id },
+    });
+
+    assert.equal(taskAfterReset.status, "todo");
+    assert.equal(taskAfterReset.streakCount, 0);
+    assert.ok(taskAfterReset.lastResetAt);
+});
+
 test("ResetDueRecurringTasksUseCase keeps streak when due task was completed before reset", async () => {
     const email = "completed-user@example.com";
     const token = createTestAccessToken(email);
