@@ -75,7 +75,7 @@ jobs:
                       exit 1
                   fi
                 
-                railway up --ci \
-                  --project "${{ env.RAILWAY_PROJECT_ID }}" \
-                  --service "${{ env.RAILWAY_SERVICE_ID }}" \
-                  --environment "${{ env.RAILWAY_ENVIRONMENT }}"
+                  railway up --ci \
+                    --project "${{ env.RAILWAY_PROJECT_ID }}" \
+                    --service "${{ env.RAILWAY_SERVICE_ID }}" \
+                    --environment "${{ env.RAILWAY_ENVIRONMENT }}"
