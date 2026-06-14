@@ -6,6 +6,25 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Language {
+  en
+  de
+  sr
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  language  Language @default(en)
+
+  tasks              Task[]
+  recurringTasks     RecurringTask[]
+  recurringProgress  RecurringTaskProgress?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum TaskStatus {
   todo
   in_progress
@@ -28,12 +47,13 @@ model Task {
   priority    TaskPriority @default(none)
   deadline    DateTime?
 
-  email       String
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  @@index([email])
+  @@index([userId])
   @@index([status])
   @@index([priority])
   @@index([deadline])
@@ -64,11 +84,13 @@ model RecurringTask {
   lastResetAt     DateTime?
   nextResetAt     DateTime
 
-  email       String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([email])
+  @@index([userId])
   @@index([status])
   @@index([frequency])
   @@index([nextResetAt])
@@ -76,7 +98,9 @@ model RecurringTask {
 
 model RecurringTaskProgress {
   id             String   @id @default(uuid())
-  email          String   @unique
+
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   allTasksStreak Int      @default(0)
   lastCheckedAt  DateTime?
