@@ -57,7 +57,6 @@ export function mapTaskToResponse(task: Task): TaskResponse {
         status: task.status,
         priority: task.priority,
         deadline: task.deadline?.toISOString() ?? null,
-        email: task.email,
         createdAt: task.createdAt.toISOString(),
         updatedAt: task.updatedAt.toISOString(),
     };

@@ -2,7 +2,7 @@ import type { RecurringFrequency, RecurringTaskStatus } from "./recurring-task";
 
 export type UpdateRecurringTaskInput = {
     recurringTaskId: string;
-    email: string;
+    userId: string;
     title?: string;
     description?: string | null;
     status?: RecurringTaskStatus;

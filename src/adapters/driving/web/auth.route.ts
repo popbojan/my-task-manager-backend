@@ -75,9 +75,9 @@ export const authRoutes: FastifyPluginAsync<{
             },
         },
         async (request) => {
-            const { email } = request.body;
+            const { email, language } = request.body;
 
-            await requestOtpUseCase.execute(email);
+            await requestOtpUseCase.execute(email, language);
 
             return { message: "OTP sent to your email" };
         },
@@ -98,9 +98,9 @@ export const authRoutes: FastifyPluginAsync<{
             },
         },
         async (request, reply) => {
-            const { email, otp } = request.body;
+            const { email, otp, language } = request.body;
 
-            const tokens = await loginWithOtpUseCase.execute(email, otp);
+            const tokens = await loginWithOtpUseCase.execute(email, otp, language);
 
             if (!tokens) {
                 return reply.code(401).send({

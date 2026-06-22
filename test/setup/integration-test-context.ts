@@ -21,6 +21,7 @@ export function setupIntegrationTestContext() {
             context.prisma.recurringTaskProgress.deleteMany(),
             context.prisma.recurringTask.deleteMany(),
             context.prisma.task.deleteMany(),
+            context.prisma.user.deleteMany(),
         ]);
     });
 

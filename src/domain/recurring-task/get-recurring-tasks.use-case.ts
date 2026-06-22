@@ -5,7 +5,7 @@ export class GetRecurringTasksUseCase {
         private readonly getRelevantRecurringTaskActivity: GetRelevantRecurringTaskActivity,
     ) {}
 
-    async execute(email: string) {
-        return this.getRelevantRecurringTaskActivity.execute(email);
+    async execute(userId: string) {
+        return this.getRelevantRecurringTaskActivity.execute(userId);
     }
 }

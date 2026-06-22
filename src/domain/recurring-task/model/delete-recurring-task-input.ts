@@ -1,4 +1,4 @@
 export type DeleteRecurringTaskInput = {
     recurringTaskId: string;
-    email: string;
+    userId: string;
 };

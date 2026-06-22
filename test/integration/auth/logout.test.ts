@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { setupIntegrationTestContext } from "../../setup/integration-test-context.js";
 import { computeTestOtp } from "../../setup/test-otp.js";
 import { getSetCookieValue } from "../../setup/set-cookie.js";
+import { loginRequestPayload } from "../../setup/test-auth-payload.js";
 
 const ctx = setupIntegrationTestContext();
 
@@ -11,7 +12,7 @@ async function loginAndGetRefreshCookie(email: string): Promise<string> {
     const loginRes = await ctx.fastify.inject({
         method: "POST",
         url: "/auth/login-with-otp",
-        payload: { email, otp },
+        payload: loginRequestPayload(email, otp),
     });
     assert.equal(loginRes.statusCode, 200);
 

@@ -11,12 +11,12 @@ export class ValidateRefreshTokenActivity {
     async execute(rawRefreshToken: string) {
         const refreshTokenHash = this.cryptoPort.sha256Hex(rawRefreshToken);
 
-        const email = await this.store.getRefreshTokenEmail(refreshTokenHash);
+        const user = await this.store.getRefreshTokenUser(refreshTokenHash);
 
-        if (!email) {
+        if (!user) {
             throw new InvalidRefreshTokenError();
         }
 
-        return { email, refreshTokenHash };
+        return { refreshTokenUser: user, refreshTokenHash };
     }
 }

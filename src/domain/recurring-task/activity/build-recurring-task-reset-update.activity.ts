@@ -10,7 +10,7 @@ export class BuildRecurringTaskResetUpdateActivity {
     execute(task: RecurringTask, asOf: Date): UpdateRecurringTaskInput {
         return {
             recurringTaskId: task.id,
-            email: task.email,
+            userId: task.userId,
             status: "todo",
             lastResetAt: asOf,
             nextResetAt: this.calculateNextResetAtActivity.execute(

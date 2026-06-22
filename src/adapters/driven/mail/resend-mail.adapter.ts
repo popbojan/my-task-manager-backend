@@ -1,4 +1,6 @@
 import type { MailPort } from "../../../domain/auth/port/mail.port";
+import { otpEmailTranslations } from "./i18n/otp-email.translations";
+import type {Language} from "../../../domain/user/model/language";
 
 type ResendMailConfig = {
     apiKey: string;
@@ -13,7 +15,8 @@ type ResendErrorResponse = {
 export class ResendMailAdapter implements MailPort {
     constructor(private readonly config: ResendMailConfig) {}
 
-    async sendOtp(email: string, code: string): Promise<void> {
+    async sendOtp(email: string, code: string, language: Language): Promise<void> {
+        const t = otpEmailTranslations[language] ?? otpEmailTranslations.en;
         const response = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
@@ -23,13 +26,13 @@ export class ResendMailAdapter implements MailPort {
             body: JSON.stringify({
                 from: this.config.from,
                 to: [email],
-                subject: "Your login code",
-                text: `Your one-time login code is: ${code}\n\nThis code is valid for 4 minutes.`,
+                subject: t.subject,
+                text: `${t.intro} ${code}\n\n${t.validFor}`,
                 html: `
-        <p>Your one-time login code is:</p>
-        <p style="font-size: 24px; font-weight: bold; letter-spacing: 2px;">${code}</p>
-        <p>This code is valid for <b>4 minutes</b>.</p>
-      `,
+            <p>${t.intro}</p>
+            <p style="font-size:24px;font-weight:bold;letter-spacing:2px;">${code}</p>
+            <p>${t.validFor}</p>
+        `,
             }),
             signal: AbortSignal.timeout(15_000),
         });

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { setupIntegrationTestContext } from "../../setup/integration-test-context.js";
 import { createTestAccessToken } from "../../setup/test-token.js";
+import { createTaskForEmail } from "../../setup/test-database-helpers.js";
 
 const ctx = setupIntegrationTestContext();
 
@@ -9,14 +10,11 @@ test("DELETE /tasks/:taskId deletes an authenticated user's task", async () => {
     const email = "test@example.com";
     const token = createTestAccessToken(email);
 
-    const task = await ctx.prisma.task.create({
-        data: {
-            email,
-            title: "Task to delete",
-            description: "Delete me",
-            status: "todo",
-            priority: "none",
-        },
+    const task = await createTaskForEmail(ctx.prisma, email, {
+        title: "Task to delete",
+        description: "Delete me",
+        status: "todo",
+        priority: "none",
     });
 
     const response = await ctx.fastify.inject({
@@ -39,14 +37,11 @@ test("DELETE /tasks/:taskId deletes an authenticated user's task", async () => {
 test("DELETE /tasks/:taskId returns 401 when token is invalid", async () => {
     const email = "test@example.com";
 
-    const task = await ctx.prisma.task.create({
-        data: {
-            email,
-            title: "Protected task",
-            description: "Description",
-            status: "todo",
-            priority: "none",
-        },
+    const task = await createTaskForEmail(ctx.prisma, email, {
+        title: "Protected task",
+        description: "Description",
+        status: "todo",
+        priority: "none",
     });
 
     const response = await ctx.fastify.inject({
@@ -77,14 +72,11 @@ test("DELETE /tasks/:taskId returns 403 when task belongs to another user", asyn
 
     const otherUserToken = createTestAccessToken(otherUserEmail);
 
-    const task = await ctx.prisma.task.create({
-        data: {
-            email: ownerEmail,
-            title: "Protected task",
-            description: "Should not be deleted",
-            status: "todo",
-            priority: "none",
-        },
+    const task = await createTaskForEmail(ctx.prisma, ownerEmail, {
+        title: "Protected task",
+        description: "Should not be deleted",
+        status: "todo",
+        priority: "none",
     });
 
     const response = await ctx.fastify.inject({
@@ -105,10 +97,11 @@ test("DELETE /tasks/:taskId returns 403 when task belongs to another user", asyn
 
     const existingTask = await ctx.prisma.task.findUnique({
         where: { id: task.id },
+        include: { user: true },
     });
 
     assert.notEqual(existingTask, null);
-    assert.equal(existingTask?.email, ownerEmail);
+    assert.equal(existingTask?.user.email, ownerEmail);
 });
 
 test("DELETE /tasks/:taskId returns 204 when task does not exist", async () => {

@@ -1,5 +1,8 @@
-export interface TokenPort {
-    generateAccessToken(payload: { email: string }): string;
+import type {RefreshTokenUser} from "../refresh-token-user";
+import type {AuthenticatedUser} from "../authenticated-user";
 
-    verifyAccessToken(token: string): { email: string };
+export interface TokenPort {
+    generateAccessToken(refreshTokenUser: RefreshTokenUser): string;
+
+    verifyAccessToken(token: string): AuthenticatedUser;
 }

@@ -5,6 +5,10 @@ import { setupIntegrationTestContext } from "../../setup/integration-test-contex
 import { computeTestOtp } from "../../setup/test-otp.js";
 import { getSetCookieValue } from "../../setup/set-cookie.js";
 import { assertBodyValidationFailed } from "../../setup/assert-http.js";
+import {
+    DEFAULT_TEST_LANGUAGE,
+    loginRequestPayload,
+} from "../../setup/test-auth-payload.js";
 
 const ctx = setupIntegrationTestContext();
 
@@ -15,7 +19,7 @@ test("POST /auth/login-with-otp returns access token and refresh cookie for vali
     const response = await ctx.fastify.inject({
         method: "POST",
         url: "/auth/login-with-otp",
-        payload: { email, otp },
+        payload: loginRequestPayload(email, otp),
     });
 
     assert.equal(response.statusCode, 200);
@@ -40,7 +44,7 @@ test("POST /auth/login-with-otp accepts OTP with surrounding whitespace", async 
     const response = await ctx.fastify.inject({
         method: "POST",
         url: "/auth/login-with-otp",
-        payload: { email, otp: `  ${otp}  ` },
+        payload: loginRequestPayload(email, `  ${otp}  `),
     });
 
     assert.equal(response.statusCode, 200);
@@ -53,7 +57,7 @@ test("POST /auth/login-with-otp returns 401 for wrong OTP", async () => {
     const response = await ctx.fastify.inject({
         method: "POST",
         url: "/auth/login-with-otp",
-        payload: { email, otp: "000000" },
+        payload: loginRequestPayload(email, "000000"),
     });
 
     assert.equal(response.statusCode, 401);
@@ -69,7 +73,7 @@ test("POST /auth/login-with-otp returns 400 for invalid email format", async () 
     const response = await ctx.fastify.inject({
         method: "POST",
         url: "/auth/login-with-otp",
-        payload: { email: "not-an-email", otp: "123456" },
+        payload: loginRequestPayload("not-an-email", "123456"),
     });
 
     assert.equal(response.statusCode, 400);
@@ -80,7 +84,7 @@ test("POST /auth/login-with-otp returns 400 when otp is missing", async () => {
     const response = await ctx.fastify.inject({
         method: "POST",
         url: "/auth/login-with-otp",
-        payload: { email: "user@example.com" },
+        payload: { email: "user@example.com", language: DEFAULT_TEST_LANGUAGE },
     });
 
     assert.equal(response.statusCode, 400);
@@ -91,7 +95,7 @@ test("POST /auth/login-with-otp returns 400 when email is missing", async () => 
     const response = await ctx.fastify.inject({
         method: "POST",
         url: "/auth/login-with-otp",
-        payload: { otp: "123456" },
+        payload: { otp: "123456", language: DEFAULT_TEST_LANGUAGE },
     });
 
     assert.equal(response.statusCode, 400);

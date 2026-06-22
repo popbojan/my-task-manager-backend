@@ -2,6 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { setupIntegrationTestContext } from "../../setup/integration-test-context.js";
 import { createTestAccessToken } from "../../setup/test-token.js";
+import {
+    createProgressForEmail,
+    findProgressByEmail,
+    updateRecurringTasksNextResetAtForEmail,
+} from "../../setup/test-database-helpers.js";
 import { CalculateNextResetAtActivity } from "../../../src/domain/recurring-task/activity/calculate-next-reset-at.activity.js";
 
 const BERLIN_TIMEZONE = "Europe/Berlin";
@@ -290,10 +295,7 @@ test("ResetDueRecurringTasksUseCase increments progress when all daily tasks wer
     assert.equal(progressResponse.statusCode, 200);
     assert.equal(progressResponse.json().allTasksStreak, 0);
 
-    await ctx.prisma.recurringTask.updateMany({
-        where: { email },
-        data: { nextResetAt: resetAt },
-    });
+    await updateRecurringTasksNextResetAtForEmail(ctx.prisma, email, resetAt);
 
     await ctx.resetDueRecurringTasksUseCase.execute();
 
@@ -308,10 +310,9 @@ test("ResetDueRecurringTasksUseCase increments progress when all daily tasks wer
     assert.equal(progressResponse.statusCode, 200);
     assert.equal(progressResponse.json().allTasksStreak, 1);
 
-    const progress = await ctx.prisma.recurringTaskProgress.findUniqueOrThrow({
-        where: { email },
-    });
+    const progress = await findProgressByEmail(ctx.prisma, email);
 
+    assert.ok(progress);
     assert.equal(progress.allTasksStreak, 1);
     assert.ok(progress.lastCheckedAt);
 });
@@ -374,17 +375,9 @@ test("ResetDueRecurringTasksUseCase clears progress streak when not all daily ta
         },
     });
 
-    await ctx.prisma.recurringTaskProgress.create({
-        data: {
-            email,
-            allTasksStreak: 5,
-        },
-    });
+    await createProgressForEmail(ctx.prisma, email, { allTasksStreak: 5 });
 
-    await ctx.prisma.recurringTask.updateMany({
-        where: { email },
-        data: { nextResetAt: resetAt },
-    });
+    await updateRecurringTasksNextResetAtForEmail(ctx.prisma, email, resetAt);
 
     const result = await ctx.resetDueRecurringTasksUseCase.execute();
 
@@ -403,10 +396,9 @@ test("ResetDueRecurringTasksUseCase clears progress streak when not all daily ta
     assert.equal(missedAfterReset.status, "todo");
     assert.equal(missedAfterReset.streakCount, 0);
 
-    const progress = await ctx.prisma.recurringTaskProgress.findUniqueOrThrow({
-        where: { email },
-    });
+    const progress = await findProgressByEmail(ctx.prisma, email);
 
+    assert.ok(progress);
     assert.equal(progress.allTasksStreak, 0);
     assert.ok(progress.lastCheckedAt);
 });

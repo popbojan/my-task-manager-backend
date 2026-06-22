@@ -13,20 +13,20 @@ export class BuildRecurringTaskProgressUpdatesActivity {
         dueTasks: RecurringTask[],
         asOf: Date,
     ): Promise<UpdateRecurringTaskProgressInput[]> {
-        const affectedEmails = [...new Set(dueTasks.map((task) => task.email))];
+        const affectedUserIds = [...new Set(dueTasks.map((task) => task.userId))];
         const updates: UpdateRecurringTaskProgressInput[] = [];
 
-        for (const email of affectedEmails) {
-            const dailyTasks = await this.recurringTaskPort.findDailyByEmail(email);
+        for (const userId of affectedUserIds) {
+            const dailyTasks = await this.recurringTaskPort.findDailyByUserId(userId);
 
             if (dailyTasks.length === 0) {
                 continue;
             }
 
-            const progress = await this.recurringTaskPort.getOrCreateProgress(email);
+            const progress = await this.recurringTaskPort.getOrCreateProgress(userId);
 
             updates.push({
-                email,
+                userId,
                 allTasksStreak: this.areAllDailyTasksDoneActivity.execute(dailyTasks)
                     ? progress.allTasksStreak + 1
                     : 0,

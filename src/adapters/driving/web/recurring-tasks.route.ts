@@ -88,9 +88,10 @@ export const recurringTaskRoutes: FastifyPluginAsync<{
             | GetRecurringTasksOp["responses"][200]["content"]["application/json"]
             | GetRecurringTasksOp["responses"][401]["content"]["application/json"];
     }>("/recurring-tasks", async (request, reply) => {
-        const email = request.user.email;
 
-        const recurringTasks = await getRecurringTasksUseCase.execute(email);
+        const user = request.user;
+
+        const recurringTasks = await getRecurringTasksUseCase.execute(user.id);
 
         return reply.code(200).send(recurringTasks.map(mapRecurringTaskToResponse));
     });
@@ -109,9 +110,9 @@ export const recurringTaskRoutes: FastifyPluginAsync<{
             },
         },
         async (request, reply) => {
-            const email = request.user.email;
+            const userId = request.user.id;
 
-            const input = mapCreateRecurringTaskRequestToInput(email, request.body);
+            const input = mapCreateRecurringTaskRequestToInput(userId, request.body);
             const recurringTask = await createRecurringTaskUseCase.execute(input);
 
             return reply.code(201).send(mapRecurringTaskToResponse(recurringTask));
@@ -127,11 +128,11 @@ export const recurringTaskRoutes: FastifyPluginAsync<{
         Params: GetRecurringTaskOp["parameters"]["path"];
         Reply: GetRecurringTaskReply;
     }>("/recurring-tasks/:recurringTaskId", async (request, reply) => {
-        const email = request.user.email;
+        const userId = request.user.id;
 
         const input = mapGetRecurringTaskByIdRequestToInput(
             request.params.recurringTaskId,
-            email,
+            userId,
         );
 
         const recurringTask = await getRecurringTaskByIdUseCase.execute(input);
@@ -164,11 +165,11 @@ export const recurringTaskRoutes: FastifyPluginAsync<{
             },
         },
         async (request, reply) => {
-            const email = request.user.email;
+            const userId = request.user.id;
 
             const input = mapUpdateRecurringTaskRequestToInput(
                 request.params.recurringTaskId,
-                email,
+                userId,
                 request.body,
             );
 
@@ -194,11 +195,11 @@ export const recurringTaskRoutes: FastifyPluginAsync<{
         Params: DeleteRecurringTaskOp["parameters"]["path"];
         Reply: DeleteRecurringTaskReply;
     }>("/recurring-tasks/:recurringTaskId", async (request, reply) => {
-        const email = request.user.email;
+        const userId = request.user.id;
 
         const input = mapDeleteRecurringTaskRequestToInput(
             request.params.recurringTaskId,
-            email,
+            userId,
         );
 
         await deleteRecurringTaskUseCase.execute(input);
@@ -211,9 +212,9 @@ export const recurringTaskRoutes: FastifyPluginAsync<{
             | GetRecurringTaskProgressOp["responses"][200]["content"]["application/json"]
             | GetRecurringTaskProgressOp["responses"][401]["content"]["application/json"];
     }>("/recurring-task-progress", async (request, reply) => {
-        const email = request.user.email;
+        const userId = request.user.id;
 
-        const progress = await getRecurringTaskProgressUseCase.execute(email);
+        const progress = await getRecurringTaskProgressUseCase.execute(userId);
 
         return reply.code(200).send(mapRecurringTaskProgressToResponse(progress));
     });

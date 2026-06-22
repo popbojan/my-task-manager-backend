@@ -28,7 +28,6 @@ test("POST /tasks creates a task for authenticated user", async () => {
 
     const body = response.json();
 
-    assert.equal(body.email, email);
     assert.equal(body.title, "Create integration test");
     assert.equal(body.description, "Test create task endpoint");
     assert.equal(body.status, "todo");
@@ -40,9 +39,10 @@ test("POST /tasks creates a task for authenticated user", async () => {
 
     const createdTask = await ctx.prisma.task.findUniqueOrThrow({
         where: { id: body.id },
+        include: { user: true },
     });
 
-    assert.equal(createdTask.email, email);
+    assert.equal(createdTask.user.email, email);
     assert.equal(createdTask.title, "Create integration test");
     assert.equal(createdTask.description, "Test create task endpoint");
     assert.equal(createdTask.status, "todo");
@@ -68,7 +68,6 @@ test("POST /tasks creates a task with default status and priority", async () => 
 
     const body = response.json();
 
-    assert.equal(body.email, email);
     assert.equal(body.title, "Minimal task");
     assert.equal(body.description, null);
     assert.equal(body.status, "todo");

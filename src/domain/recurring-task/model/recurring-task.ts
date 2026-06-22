@@ -11,14 +11,14 @@ export type RecurringTask = {
     lastCompletedAt: Date | null;
     lastResetAt: Date | null;
     nextResetAt: Date;
-    email: string;
+    userId: string;
     createdAt: Date;
     updatedAt: Date;
 };
 
 export type RecurringTaskProgress = {
     id: string;
-    email: string;
+    userId: string;
     allTasksStreak: number;
     lastCheckedAt: Date | null;
     createdAt: Date;

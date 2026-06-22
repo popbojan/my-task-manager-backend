@@ -15,7 +15,7 @@ export class UpdateRecurringTaskUseCase {
     async execute(input: UpdateRecurringTaskInput) {
         const recurringTask = await this.getRecurringTaskByIdActivity.execute({
             recurringTaskId: input.recurringTaskId,
-            email: input.email,
+            userId: input.userId,
         });
 
         if (!recurringTask) {

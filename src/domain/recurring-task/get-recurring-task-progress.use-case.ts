@@ -5,7 +5,7 @@ export class GetRecurringTaskProgressUseCase {
         private readonly getRecurringTaskProgressActivity: GetRecurringTaskProgressActivity,
     ) {}
 
-    async execute(email: string) {
-        return this.getRecurringTaskProgressActivity.execute(email);
+    async execute(userId: string) {
+        return this.getRecurringTaskProgressActivity.execute(userId);
     }
 }

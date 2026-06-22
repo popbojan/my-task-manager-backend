@@ -12,7 +12,7 @@ export class GetRecurringTaskByIdActivity {
             return null;
         }
 
-        if (recurringTask.email !== input.email) {
+        if (recurringTask.userId !== input.userId) {
             throw new ForbiddenRecurringTaskAccessException();
         }
 

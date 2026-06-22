@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { setupIntegrationTestContext } from "../../setup/integration-test-context.js";
 import { createTestAccessToken } from "../../setup/test-token.js";
+import { createTaskForEmail } from "../../setup/test-database-helpers.js";
 
 const ctx = setupIntegrationTestContext();
 
@@ -9,15 +10,12 @@ test("GET /tasks/:taskId returns an authenticated user's task", async () => {
     const email = "test@example.com";
     const token = createTestAccessToken(email);
 
-    const task = await ctx.prisma.task.create({
-        data: {
-            email,
-            title: "My task",
-            description: "My description",
-            status: "todo",
-            priority: "none",
-            deadline: new Date("2026-05-10T00:00:00.000Z"),
-        },
+    const task = await createTaskForEmail(ctx.prisma, email, {
+        title: "My task",
+        description: "My description",
+        status: "todo",
+        priority: "none",
+        deadline: new Date("2026-05-10T00:00:00.000Z"),
     });
 
     const response = await ctx.fastify.inject({
@@ -33,7 +31,6 @@ test("GET /tasks/:taskId returns an authenticated user's task", async () => {
     const body = response.json();
 
     assert.equal(body.id, task.id);
-    assert.equal(body.email, email);
     assert.equal(body.title, "My task");
     assert.equal(body.description, "My description");
     assert.equal(body.status, "todo");
@@ -44,14 +41,11 @@ test("GET /tasks/:taskId returns an authenticated user's task", async () => {
 test("GET /tasks/:taskId returns 401 when token is invalid", async () => {
     const email = "test@example.com";
 
-    const task = await ctx.prisma.task.create({
-        data: {
-            email,
-            title: "Task",
-            description: "Description",
-            status: "todo",
-            priority: "none",
-        },
+    const task = await createTaskForEmail(ctx.prisma, email, {
+        title: "Task",
+        description: "Description",
+        status: "todo",
+        priority: "none",
     });
 
     const response = await ctx.fastify.inject({
@@ -76,14 +70,11 @@ test("GET /tasks/:taskId returns 403 when task belongs to another user", async (
 
     const otherUserToken = createTestAccessToken(otherUserEmail);
 
-    const task = await ctx.prisma.task.create({
-        data: {
-            email: ownerEmail,
-            title: "Protected task",
-            description: "Should not be visible",
-            status: "todo",
-            priority: "none",
-        },
+    const task = await createTaskForEmail(ctx.prisma, ownerEmail, {
+        title: "Protected task",
+        description: "Should not be visible",
+        status: "todo",
+        priority: "none",
     });
 
     const response = await ctx.fastify.inject({

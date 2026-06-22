@@ -1,6 +1,8 @@
 import type { StorePort } from "../../../domain/auth/port/store-port";
+import type {RefreshTokenUser} from "../../../domain/auth/refresh-token-user";
 
 type RefreshTokenEntry = {
+    userId: string;
     email: string;
     expiresAt: number;
 };
@@ -8,11 +10,12 @@ type RefreshTokenEntry = {
 export class InMemoryStoreAdapter implements StorePort {
     private readonly refreshTokens = new Map<string, RefreshTokenEntry>();
 
-    async saveRefreshToken(hashedToken: string, email: string, ttlSeconds: number): Promise<void> {
+    async saveRefreshToken(hashedToken: string, refreshTokenUser: RefreshTokenUser, ttlSeconds: number): Promise<void> {
         const expiresAt = Date.now() + ttlSeconds * 1000;
 
         this.refreshTokens.set(hashedToken, {
-            email,
+            userId: refreshTokenUser.id,
+            email: refreshTokenUser.email,
             expiresAt,
         });
     }
@@ -21,7 +24,9 @@ export class InMemoryStoreAdapter implements StorePort {
         this.refreshTokens.delete(hashedToken);
     }
 
-    async getRefreshTokenEmail(hashedToken: string): Promise<string | null> {
+    async getRefreshTokenUser(
+        hashedToken: string,
+    ): Promise<RefreshTokenUser | null> {
         const entry = this.refreshTokens.get(hashedToken);
 
         if (!entry) {
@@ -33,6 +38,9 @@ export class InMemoryStoreAdapter implements StorePort {
             return null;
         }
 
-        return entry.email;
+        return {
+            id: entry.userId,
+            email: entry.email,
+        };
     }
 }

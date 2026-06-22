@@ -11,7 +11,7 @@ export class DeleteRecurringTaskUseCase {
     async execute(input: DeleteRecurringTaskInput): Promise<void> {
         const recurringTask = await this.getRecurringTaskByIdActivity.execute({
             recurringTaskId: input.recurringTaskId,
-            email: input.email,
+            userId: input.userId,
         });
 
         if (!recurringTask) {

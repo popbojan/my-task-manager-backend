@@ -9,6 +9,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { authRoutes } from "./adapters/driving/web/auth.route.js";
 import { taskRoutes } from "./adapters/driving/web/task.route.js";
 import { recurringTaskRoutes } from "./adapters/driving/web/recurring-tasks.route.js";
+import { userRoutes } from "./adapters/driving/web/user.route.js";
 
 import { createMailAdapter } from "./adapters/driven/mail/create-mail.adapter.js";
 import { JwtTokenAdapter } from "./adapters/driven/security/jwt-token.adapter.js";
@@ -17,6 +18,7 @@ import { CryptoAdapter } from "./adapters/driven/security/crypto.adapter.js";
 import { InMemoryStoreAdapter } from "./adapters/driven/persistence/in-memory-store.adapter.js";
 import { PrismaTaskAdapter } from "./adapters/driven/persistence/prisma-task.adapter.js";
 import { PrismaRecurringTaskAdapter } from "./adapters/driven/persistence/prisma-recurring-task.adapter.js";
+import { PrismaUserAdapter } from "./adapters/driven/persistence/prisma-user.adapter.js";
 
 import { RequestOtpUseCase } from "./domain/auth/request-otp.use-case.js";
 import { LoginWithOtpUseCase } from "./domain/auth/login-with-otp.use-case.js";
@@ -67,6 +69,12 @@ import { DeleteRecurringTaskUseCase } from "./domain/recurring-task/delete-recur
 import { GetRecurringTaskProgressUseCase } from "./domain/recurring-task/get-recurring-task-progress.use-case.js";
 import { ResetDueRecurringTasksUseCase } from "./domain/recurring-task/reset-due-recurring-tasks.use-case.js";
 
+import { GetUserByEmailActivity } from "./domain/user/activity/get-user-by-email.activity.js";
+import { RegisterUserActivity } from "./domain/user/activity/register-user.activity";
+import { UpdateUserLanguageActivity } from "./domain/user/activity/update-user-language.activity.js";
+import { GetCurrentUserUseCase } from "./domain/user/get-current-user.use-case.js";
+import { UpdateUserPreferencesUseCase } from "./domain/user/update-user-preferences.use-case.js";
+
 import { loadOpenApiRuntimeSpec } from "./adapters/driving/web/openapi/openapi-runtime-schema";
 import type { OpenApiPathsDocument } from "./adapters/driving/web/openapi/openapi-paths-document.types.js";
 import type { MailPort } from "./domain/auth/port/mail.port.js";
@@ -86,6 +94,7 @@ export async function buildApp(options?: BuildAppOptions) {
     const prisma = new PrismaClient({ adapter });
 
     const taskPort = new PrismaTaskAdapter(prisma);
+    const userPort = new PrismaUserAdapter(prisma);
     const resolveAllTasksStreakActivity = new ResolveAllTasksStreakActivity();
     const recurringTaskPort = new PrismaRecurringTaskAdapter(
         prisma,
@@ -121,6 +130,11 @@ export async function buildApp(options?: BuildAppOptions) {
     );
     const validateAccessTokenActivity = new ValidateAccessTokenActivity(tokenPort);
 
+    //                  -- user --
+    const getUserByEmailActivity = new GetUserByEmailActivity(userPort);
+    const upsertUserOnAuthActivity = new RegisterUserActivity(userPort);
+    const updateUserLanguageActivity = new UpdateUserLanguageActivity(userPort);
+
     //                  -- task --
     const getRelevantTaskActivity = new GetRelevantTaskActivity(taskPort);
     const createTaskActivity = new CreateTaskActivity(taskPort);
@@ -153,11 +167,16 @@ export async function buildApp(options?: BuildAppOptions) {
 
     // --- Use Cases ---
     //                  -- auth --
-    const requestOtpUseCase = new RequestOtpUseCase(mailAdapter, generateOtpActivity);
+    const requestOtpUseCase = new RequestOtpUseCase(
+        mailAdapter,
+        generateOtpActivity,
+        upsertUserOnAuthActivity,
+    );
     const loginWithOtpUseCase = new LoginWithOtpUseCase(
         generateOtpActivity,
         generateTokenActivity,
         issueRefreshTokenActivity,
+        upsertUserOnAuthActivity,
     );
     const authRefreshUseCase = new AuthRefreshUseCase(
         generateTokenActivity,
@@ -171,6 +190,12 @@ export async function buildApp(options?: BuildAppOptions) {
     );
     const getAuthenticatedEmailUseCase = new GetAuthenticatedEmailUseCase(
         validateAccessTokenActivity,
+    );
+
+    //                  -- user --
+    const getCurrentUserUseCase = new GetCurrentUserUseCase(getUserByEmailActivity);
+    const updateUserPreferencesUseCase = new UpdateUserPreferencesUseCase(
+        updateUserLanguageActivity,
     );
 
     //                  -- task --
@@ -239,6 +264,13 @@ export async function buildApp(options?: BuildAppOptions) {
         loginWithOtpUseCase,
         authRefreshUseCase,
         logoutUseCase,
+        openApiSpec,
+    });
+
+    await fastify.register(userRoutes, {
+        getCurrentUserUseCase,
+        updateUserPreferencesUseCase,
+        getAuthenticatedEmailUseCase,
         openApiSpec,
     });
 

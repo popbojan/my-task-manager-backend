@@ -14,11 +14,11 @@ type UpdateRecurringTaskRequest = components["schemas"]["UpdateRecurringTaskRequ
 type RecurringTaskProgressResponse = components["schemas"]["RecurringTaskProgress"];
 
 export function mapCreateRecurringTaskRequestToInput(
-    email: string,
+    userId: string,
     request: CreateRecurringTaskRequest,
 ): Omit<CreateRecurringTaskInput, "nextResetAt"> {
     return {
-        email,
+        userId,
         title: request.title,
         description: request.description ?? null,
         frequency: request.frequency,
@@ -27,12 +27,12 @@ export function mapCreateRecurringTaskRequestToInput(
 
 export function mapUpdateRecurringTaskRequestToInput(
     recurringTaskId: string,
-    email: string,
+    userId: string,
     request: UpdateRecurringTaskRequest,
 ): UpdateRecurringTaskInput {
     return {
         recurringTaskId,
-        email,
+        userId: userId,
         ...(request.title !== undefined && {
             title: request.title,
         }),
@@ -59,7 +59,6 @@ export function mapRecurringTaskToResponse(recurringTask: RecurringTask): Recurr
         lastCompletedAt: recurringTask.lastCompletedAt?.toISOString() ?? null,
         lastResetAt: recurringTask.lastResetAt?.toISOString() ?? null,
         nextResetAt: recurringTask.nextResetAt.toISOString(),
-        email: recurringTask.email,
         createdAt: recurringTask.createdAt.toISOString(),
         updatedAt: recurringTask.updatedAt.toISOString(),
     };
@@ -70,7 +69,6 @@ export function mapRecurringTaskProgressToResponse(
 ): RecurringTaskProgressResponse {
     return {
         id: progress.id,
-        email: progress.email,
         allTasksStreak: progress.allTasksStreak,
         lastCheckedAt: progress.lastCheckedAt?.toISOString() ?? null,
     };
@@ -78,20 +76,20 @@ export function mapRecurringTaskProgressToResponse(
 
 export function mapGetRecurringTaskByIdRequestToInput(
     recurringTaskId: string,
-    email: string,
+    userId: string,
 ): GetRecurringTaskByIdInput {
     return {
         recurringTaskId,
-        email,
+        userId,
     };
 }
 
 export function mapDeleteRecurringTaskRequestToInput(
     recurringTaskId: string,
-    email: string,
+    userId: string,
 ): DeleteRecurringTaskInput {
     return {
         recurringTaskId,
-        email,
+        userId,
     };
 }

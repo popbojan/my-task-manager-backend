@@ -22,7 +22,7 @@ export function startRecurringTaskResetCron(
                 logger.info(
                     {
                         resetTaskCount: result.resetTaskCount,
-                        affectedEmails: result.affectedEmails,
+                        affectedUserIds: result.affectedUserIds,
                     },
                     "Recurring task midnight reset completed",
                 );

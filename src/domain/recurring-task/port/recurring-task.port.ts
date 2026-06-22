@@ -5,15 +5,15 @@ import type { UpdateRecurringTaskProgressInput } from "../model/update-recurring
 import type { ResetDueRecurringTasksResult } from "../model/reset-due-recurring-tasks-result";
 
 export interface RecurringTaskPort {
-    findByEmail(email: string): Promise<RecurringTask[]>;
-    findDailyByEmail(email: string): Promise<RecurringTask[]>;
+    findByUserId(userId: string): Promise<RecurringTask[]>;
+    findDailyByUserId(userId: string): Promise<RecurringTask[]>;
     findDueForReset(asOf: Date): Promise<RecurringTask[]>;
     findById(recurringTaskId: string): Promise<RecurringTask | null>;
     create(input: CreateRecurringTaskInput): Promise<RecurringTask>;
     update(input: UpdateRecurringTaskInput): Promise<RecurringTask>;
     delete(recurringTaskId: string): Promise<void>;
-    findProgressByEmail(email: string): Promise<RecurringTaskProgress | null>;
-    getOrCreateProgress(email: string): Promise<RecurringTaskProgress>;
-    updateProgress(email: string, input: UpdateRecurringTaskProgressInput,): Promise<RecurringTaskProgress>;
-    resetDueRecurringTasks(input: { taskUpdates: UpdateRecurringTaskInput[]; progressUpdates: UpdateRecurringTaskProgressInput[]; }): Promise<ResetDueRecurringTasksResult>;
+    getOrCreateProgress(userId: string): Promise<RecurringTaskProgress>;
+    //updateProgress(userId: string, input: UpdateRecurringTaskProgressInput,): Promise<RecurringTaskProgress>;
+    resetDueRecurringTasks(input: { taskUpdates: UpdateRecurringTaskInput[]; progressUpdates: UpdateRecurringTaskProgressInput[]; }): Promise<
+        ResetDueRecurringTasksResult>;
 }

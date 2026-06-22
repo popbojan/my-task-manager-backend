@@ -14,14 +14,14 @@ export class AuthRefreshUseCase {
     async execute(
         rawRefreshToken: string,
     ): Promise<{ accessToken: string; refreshToken: string; refreshTtlSeconds: number } | null> {
-        const { email, refreshTokenHash } =
-            await this.validateRefreshTokenActivity.execute(rawRefreshToken);
+
+        const { refreshTokenUser, refreshTokenHash } = await this.validateRefreshTokenActivity.execute(rawRefreshToken);
 
         // Rotation
         await this.revokeRefreshTokenActivity.execute(refreshTokenHash);
-        const { refreshToken, ttlSeconds } = await this.issueRefreshTokenActivity.execute(email);
+        const { refreshToken, ttlSeconds } = await this.issueRefreshTokenActivity.execute(refreshTokenUser);
 
-        const accessToken = this.generateTokenActivity.execute(email);
+        const accessToken = this.generateTokenActivity.execute(refreshTokenUser);
 
         return { accessToken, refreshToken, refreshTtlSeconds: ttlSeconds };
     }
