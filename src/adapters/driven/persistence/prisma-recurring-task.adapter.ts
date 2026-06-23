@@ -56,7 +56,7 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
                     lte: asOf,
                 },
             },
-            include: {user: true},
+            include: { user: true },
             orderBy: {
                 nextResetAt: "asc",
             },
@@ -149,16 +149,13 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
     }): Promise<ResetDueRecurringTasksResult> {
         return this.prisma.$transaction(async (tx) => {
             for (const progressUpdate of input.progressUpdates) {
-                const user = await tx.user.findUniqueOrThrow({
-                    where: {id: progressUpdate.userId},
-                });
 
                 await tx.recurringTaskProgress.upsert({
                     where: {
-                        userId: user.id,
+                        userId: progressUpdate.userId,
                     },
                     create: {
-                        userId: user.id,
+                        userId: progressUpdate.userId,
                         allTasksStreak: progressUpdate.allTasksStreak,
                         lastCheckedAt: progressUpdate.lastCheckedAt,
                     },
@@ -194,7 +191,10 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
             return {
                 resetTaskCount: input.taskUpdates.length,
                 affectedUserIds: [
-                    ...new Set(input.taskUpdates.map((task) => task.userId)),
+                    ...new Set([
+                        ...input.taskUpdates.map((task) => task.userId),
+                        ...input.progressUpdates.map((progress) => progress.userId),
+                    ]),
                 ],
             };
         });
