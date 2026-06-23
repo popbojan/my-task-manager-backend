@@ -1,13 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { setupIntegrationTestContext } from "../../setup/integration-test-context.js";
-import { createTestAccessToken } from "../../setup/test-token.js";
 import {
     createProgressForEmail,
+    ensureUser,
     findProgressByEmail,
     updateRecurringTasksNextResetAtForEmail,
 } from "../../setup/test-database-helpers.js";
 import { CalculateNextResetAtActivity } from "../../../src/domain/recurring-task/activity/calculate-next-reset-at.activity.js";
+import {createTestAccessToken} from "../../setup/test-token";
 
 const BERLIN_TIMEZONE = "Europe/Berlin";
 const calculateNextResetAtActivity = new CalculateNextResetAtActivity();
@@ -28,7 +29,8 @@ function getNextDailyResetAt(from: Date): Date {
 
 test("ResetDueRecurringTasksUseCase resets due recurring tasks back to todo", async () => {
     const email = "reset-user@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
     const resetAt = getBerlinTime();
 
     const createResponse = await ctx.fastify.inject({
@@ -59,7 +61,7 @@ test("ResetDueRecurringTasksUseCase resets due recurring tasks back to todo", as
     const result = await ctx.resetDueRecurringTasksUseCase.execute();
 
     assert.equal(result.resetTaskCount, 1);
-    assert.deepEqual(result.affectedEmails, [email]);
+    assert.deepEqual(result.affectedUserIds, [user.id]);
 
     const taskAfterReset = await ctx.prisma.recurringTask.findUniqueOrThrow({
         where: { id: createdTask.id },
@@ -76,7 +78,8 @@ test("ResetDueRecurringTasksUseCase resets due recurring tasks back to todo", as
 
 test("ResetDueRecurringTasksUseCase resets in_progress recurring tasks from Bearbeitung back to todo", async () => {
     const email = "in-progress-user@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
     const resetAt = getBerlinTime();
 
     const createResponse = await ctx.fastify.inject({
@@ -117,7 +120,7 @@ test("ResetDueRecurringTasksUseCase resets in_progress recurring tasks from Bear
     const result = await ctx.resetDueRecurringTasksUseCase.execute();
 
     assert.equal(result.resetTaskCount, 1);
-    assert.deepEqual(result.affectedEmails, [email]);
+    assert.deepEqual(result.affectedUserIds, [user.id]);
 
     const taskAfterReset = await ctx.prisma.recurringTask.findUniqueOrThrow({
         where: { id: createdTask.id },
@@ -130,7 +133,8 @@ test("ResetDueRecurringTasksUseCase resets in_progress recurring tasks from Bear
 
 test("ResetDueRecurringTasksUseCase keeps streak when due task was completed before reset", async () => {
     const email = "completed-user@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
     const resetAt = getBerlinTime();
 
     const createResponse = await ctx.fastify.inject({
@@ -179,7 +183,8 @@ test("ResetDueRecurringTasksUseCase keeps streak when due task was completed bef
 
 test("ResetDueRecurringTasksUseCase does not reset tasks that are not yet due", async () => {
     const email = "not-due-user@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
     const resetAt = getBerlinTime();
     const nextResetAt = getNextDailyResetAt(resetAt);
 
@@ -211,7 +216,7 @@ test("ResetDueRecurringTasksUseCase does not reset tasks that are not yet due", 
     const result = await ctx.resetDueRecurringTasksUseCase.execute();
 
     assert.equal(result.resetTaskCount, 0);
-    assert.deepEqual(result.affectedEmails, []);
+    assert.deepEqual(result.affectedUserIds, []);
 
     const taskAfterReset = await ctx.prisma.recurringTask.findUniqueOrThrow({
         where: { id: createdTask.id },
@@ -223,7 +228,8 @@ test("ResetDueRecurringTasksUseCase does not reset tasks that are not yet due", 
 
 test("ResetDueRecurringTasksUseCase increments progress when all daily tasks were completed before reset", async () => {
     const email = "progress-user@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
     const resetAt = getBerlinTime();
 
     const firstCreateResponse = await ctx.fastify.inject({
@@ -319,7 +325,8 @@ test("ResetDueRecurringTasksUseCase increments progress when all daily tasks wer
 
 test("ResetDueRecurringTasksUseCase clears progress streak when not all daily tasks were completed", async () => {
     const email = "missed-progress-user@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
     const resetAt = getBerlinTime();
 
     const completedCreateResponse = await ctx.fastify.inject({
@@ -382,7 +389,7 @@ test("ResetDueRecurringTasksUseCase clears progress streak when not all daily ta
     const result = await ctx.resetDueRecurringTasksUseCase.execute();
 
     assert.equal(result.resetTaskCount, 2);
-    assert.deepEqual(result.affectedEmails, [email]);
+    assert.deepEqual(result.affectedUserIds, [user.id]);
 
     const completedAfterReset = await ctx.prisma.recurringTask.findUniqueOrThrow({
         where: { id: completedTask.id },
