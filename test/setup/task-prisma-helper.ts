@@ -1,7 +1,5 @@
 import type { PrismaClient, TaskPriority, TaskStatus } from "@prisma/client";
-import { DEFAULT_TEST_LANGUAGE } from "./test-auth-payload.js";
-
-type TestLanguage = "en" | "de" | "sr";
+import { ensureUser } from "./user-prisma-helper.js";
 
 type CreateTaskData = {
     title: string;
@@ -10,18 +8,6 @@ type CreateTaskData = {
     priority?: TaskPriority;
     deadline?: Date | null;
 };
-
-export async function ensureUser(
-    prisma: PrismaClient,
-    email: string,
-    language: TestLanguage = DEFAULT_TEST_LANGUAGE,
-) {
-    return prisma.user.upsert({
-        where: { email },
-        create: { email, language },
-        update: { language },
-    });
-}
 
 export async function createTaskForEmail(
     prisma: PrismaClient,

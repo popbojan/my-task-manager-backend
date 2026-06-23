@@ -3,10 +3,10 @@ import assert from "node:assert/strict";
 import { setupIntegrationTestContext } from "../../setup/integration-test-context.js";
 import {
     createProgressForEmail,
-    ensureUser,
     findProgressByEmail,
     updateRecurringTasksNextResetAtForEmail,
-} from "../../setup/test-database-helpers.js";
+} from "../../setup/task-prisma-helper.js";
+import { ensureUser } from "../../setup/user-prisma-helper.js";
 import { CalculateNextResetAtActivity } from "../../../src/domain/recurring-task/activity/calculate-next-reset-at.activity.js";
 import {createTestAccessToken} from "../../setup/test-token";
 

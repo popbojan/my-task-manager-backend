@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { setupIntegrationTestContext } from "../../setup/integration-test-context.js";
 import { createTestAccessToken } from "../../setup/test-token.js";
-import { createTaskForEmail } from "../../setup/test-database-helpers.js";
+import { createTaskForEmail } from "../../setup/task-prisma-helper.js";
 
 const ctx = setupIntegrationTestContext();
 
