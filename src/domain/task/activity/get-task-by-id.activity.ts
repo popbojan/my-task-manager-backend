@@ -12,7 +12,7 @@ export class GetTaskByIdActivity {
             return null;
         }
 
-        if (task.email !== input.email) {
+        if (task.userId !== input.userId) {
             throw new ForbiddenTaskAccessException();
         }
 

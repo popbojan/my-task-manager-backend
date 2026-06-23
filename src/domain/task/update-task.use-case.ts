@@ -11,7 +11,7 @@ export class UpdateTaskUseCase {
     async execute(input: UpdateTaskInput) {
         const task = await this.getTaskByIdActivity.execute({
             taskId: input.taskId,
-            email: input.email,
+            userId: input.userId,
         });
 
         if (!task) {

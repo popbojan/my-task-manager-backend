@@ -24,7 +24,7 @@ import { RequestOtpUseCase } from "./domain/auth/request-otp.use-case.js";
 import { LoginWithOtpUseCase } from "./domain/auth/login-with-otp.use-case.js";
 import { AuthRefreshUseCase } from "./domain/auth/auth-refresh.use-case.js";
 import { LogoutUseCase } from "./domain/auth/logout.use-case.js";
-import { GetAuthenticatedEmailUseCase } from "./domain/auth/get-authenticated-email.use-case.js";
+import { GetAuthenticatedUserUseCase } from "./domain/auth/get-authenticated-user-use.case";
 import { GenerateOtpActivity } from "./domain/auth/activity/generate-otp.activity.js";
 
 import { GenerateTokenActivity } from "./domain/auth/activity/generate-token.activity.js";
@@ -188,7 +188,7 @@ export async function buildApp(options?: BuildAppOptions) {
         validateRefreshTokenActivity,
         revokeRefreshTokenActivity,
     );
-    const getAuthenticatedEmailUseCase = new GetAuthenticatedEmailUseCase(
+    const getAuthenticatedUserUseCase = new GetAuthenticatedUserUseCase(
         validateAccessTokenActivity,
     );
 
@@ -270,13 +270,13 @@ export async function buildApp(options?: BuildAppOptions) {
     await fastify.register(userRoutes, {
         getCurrentUserUseCase,
         updateUserPreferencesUseCase,
-        getAuthenticatedEmailUseCase,
+        getAuthenticatedUserUseCase,
         openApiSpec,
     });
 
     await fastify.register(taskRoutes, {
         getTaskUseCase,
-        getAuthenticatedEmailUseCase,
+        getAuthenticatedUserUseCase,
         createTaskUseCase,
         updateTaskUseCase,
         getTaskByIdUseCase,
@@ -286,7 +286,7 @@ export async function buildApp(options?: BuildAppOptions) {
 
     await fastify.register(recurringTaskRoutes, {
         getRecurringTasksUseCase,
-        getAuthenticatedEmailUseCase,
+        getAuthenticatedUserUseCase,
         createRecurringTaskUseCase,
         updateRecurringTaskUseCase,
         getRecurringTaskByIdUseCase,

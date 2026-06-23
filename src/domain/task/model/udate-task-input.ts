@@ -2,7 +2,7 @@ import type { TaskPriority, TaskStatus } from "./task";
 
 export type UpdateTaskInput = {
     taskId: string;
-    email: string;
+    userId: string;
     title?: string;
     description?: string | null;
     status?: TaskStatus;

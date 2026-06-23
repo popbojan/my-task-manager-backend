@@ -3,12 +3,14 @@ import assert from "node:assert/strict";
 import { setupIntegrationTestContext } from "../../setup/integration-test-context.js";
 import { createTestAccessToken } from "../../setup/test-token.js";
 import { createTaskForEmail } from "../../setup/task-prisma-helper.js";
+import { ensureUser } from "../../setup/user-prisma-helper.js";
 
 const ctx = setupIntegrationTestContext();
 
 test("GET /tasks returns authenticated user's tasks", async () => {
     const email = "test@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
 
     const task1 = await createTaskForEmail(ctx.prisma, email, {
         title: "First task",
@@ -54,7 +56,8 @@ test("GET /tasks returns authenticated user's tasks", async () => {
 
 test("GET /tasks returns empty array when authenticated user has no tasks", async () => {
     const email = "empty@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
 
     await createTaskForEmail(ctx.prisma, "other@example.com", {
         title: "Other user's task",

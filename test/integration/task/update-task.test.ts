@@ -3,12 +3,14 @@ import assert from "node:assert/strict";
 import { setupIntegrationTestContext } from "../../setup/integration-test-context.js";
 import { createTestAccessToken } from "../../setup/test-token.js";
 import { createTaskForEmail } from "../../setup/task-prisma-helper.js";
+import { ensureUser } from "../../setup/user-prisma-helper.js";
 
 const ctx = setupIntegrationTestContext();
 
 test("PATCH /tasks/:taskId updates an authenticated user's task", async () => {
     const email = "test@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
 
     const task = await createTaskForEmail(ctx.prisma, email, {
         title: "Old task title",
@@ -55,7 +57,8 @@ test("PATCH /tasks/:taskId updates an authenticated user's task", async () => {
 
 test("PATCH /tasks/:taskId returns 400 for invalid status", async () => {
     const email = "test@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
 
     const task = await createTaskForEmail(ctx.prisma, email, {
         title: "Task",
@@ -116,7 +119,8 @@ test("PATCH /tasks/:taskId returns 403 when task belongs to another user", async
     const ownerEmail = "owner@example.com";
     const otherUserEmail = "other@example.com";
 
-    const otherUserToken = createTestAccessToken(otherUserEmail);
+    const otherUser = await ensureUser(ctx.prisma, otherUserEmail);
+    const otherUserToken = createTestAccessToken(otherUser.id, otherUser.email);
 
     const task = await createTaskForEmail(ctx.prisma, ownerEmail, {
         title: "Protected task",

@@ -2,7 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import type { operations } from "./types/api.js";
 import type { GetCurrentUserUseCase } from "../../../domain/user/get-current-user.use-case.js";
 import type { UpdateUserPreferencesUseCase } from "../../../domain/user/update-user-preferences.use-case.js";
-import type { GetAuthenticatedEmailUseCase } from "../../../domain/auth/get-authenticated-email.use-case.js";
+import type { GetAuthenticatedUserUseCase } from "../../../domain/auth/get-authenticated-user-use.case";
 import { buildAuthHook } from "./auth/auth.hook.js";
 import { toFastifySchema } from "./openapi/openapi-schema.mapper.js";
 import type { OpenApiPathsDocument } from "./openapi/openapi-paths-document.types.js";
@@ -14,17 +14,17 @@ type UpdateUserPreferencesOp = operations["updateUserPreferences"];
 export const userRoutes: FastifyPluginAsync<{
     getCurrentUserUseCase: GetCurrentUserUseCase;
     updateUserPreferencesUseCase: UpdateUserPreferencesUseCase;
-    getAuthenticatedEmailUseCase: GetAuthenticatedEmailUseCase;
+    getAuthenticatedUserUseCase: GetAuthenticatedUserUseCase;
     openApiSpec: OpenApiPathsDocument;
 }> = async (fastify, opts) => {
     const {
         getCurrentUserUseCase,
         updateUserPreferencesUseCase,
-        getAuthenticatedEmailUseCase,
+        getAuthenticatedUserUseCase,
         openApiSpec,
     } = opts;
 
-    const authHook = buildAuthHook(getAuthenticatedEmailUseCase);
+    const authHook = buildAuthHook(getAuthenticatedUserUseCase);
     fastify.addHook("preHandler", authHook);
 
     const updateUserPreferencesJson =

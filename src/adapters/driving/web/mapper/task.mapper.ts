@@ -10,11 +10,11 @@ type TaskResponse = components["schemas"]["Task"];
 type UpdateTaskRequest = components["schemas"]["UpdateTaskRequest"];
 
 export function mapCreateTaskRequestToInput(
-    email: string,
+    userId: string,
     request: CreateTaskRequest,
 ): CreateTaskInput {
     return {
-        email,
+        userId: userId,
         title: request.title,
         description: request.description ?? null,
         status: request.status ?? "todo",
@@ -25,12 +25,12 @@ export function mapCreateTaskRequestToInput(
 
 export function mapUpdateTaskRequestToInput(
     taskId: string,
-    email: string,
+    userId: string,
     request: UpdateTaskRequest,
 ): UpdateTaskInput {
     return {
         taskId,
-        email,
+        userId,
         ...(request.title !== undefined && {
             title: request.title,
         }),
@@ -62,16 +62,16 @@ export function mapTaskToResponse(task: Task): TaskResponse {
     };
 }
 
-export function mapGetTaskByIdRequestToInput(taskId: string, email: string): GetTaskByIdInput {
+export function mapGetTaskByIdRequestToInput(taskId: string, userId: string): GetTaskByIdInput {
     return {
         taskId,
-        email,
+        userId,
     };
 }
 
-export function mapDeleteTaskRequestToInput(taskId: string, email: string): DeleteTaskInput {
+export function mapDeleteTaskRequestToInput(taskId: string, userId: string): DeleteTaskInput {
     return {
         taskId,
-        email,
+        userId,
     };
 }

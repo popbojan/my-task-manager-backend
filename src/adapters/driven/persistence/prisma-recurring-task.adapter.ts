@@ -5,42 +5,17 @@ import type { UpdateRecurringTaskInput } from "../../../domain/recurring-task/mo
 import type { UpdateRecurringTaskProgressInput } from "../../../domain/recurring-task/model/update-recurring-task-progress-input";
 import type { ResolveAllTasksStreakActivity } from "../../../domain/recurring-task/activity/resolve-all-tasks-streak.activity";
 import type { ResetDueRecurringTasksResult } from "../../../domain/recurring-task/model/reset-due-recurring-tasks-result";
-import type {
-    RecurringTask,
-    RecurringTaskProgress,
-} from "../../../domain/recurring-task/model/recurring-task";
+import { mapRecurringTaskProgress } from "../mapper/recurring-task-progress.mapper";
+import { mapRecurringTask } from "../mapper/recurring-task.mapper";
 
 type PrismaDb = PrismaClient | Prisma.TransactionClient;
-
-type RecurringTaskRecord = {
-    id: string;
-    title: string;
-    description: string | null;
-    status: RecurringTask["status"];
-    frequency: RecurringTask["frequency"];
-    streakCount: number;
-    lastCompletedAt: Date | null;
-    lastResetAt: Date | null;
-    nextResetAt: Date;
-    userId: string;
-    createdAt: Date;
-    updatedAt: Date;
-};
-
-type RecurringTaskProgressRecord = {
-    id: string;
-    userId: string;
-    allTasksStreak: number;
-    lastCheckedAt: Date | null;
-    createdAt: Date;
-    updatedAt: Date;
-};
 
 export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
     constructor(
         private readonly prisma: PrismaDb,
         private readonly resolveAllTasksStreakActivity: ResolveAllTasksStreakActivity,
-    ) {}
+    ) {
+    }
 
     async findByUserId(userId: string) {
         const user = await this.findUserByUserId(userId);
@@ -50,12 +25,12 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
         }
 
         const recurringTasks = await this.prisma.recurringTask.findMany({
-            where: { userId: user.id },
-            include: { user: true },
-            orderBy: { createdAt: "desc" },
+            where: {userId: user.id},
+            include: {user: true},
+            orderBy: {createdAt: "desc"},
         });
 
-        return recurringTasks.map((task) => this.mapRecurringTask(task));
+        return recurringTasks.map((task) => mapRecurringTask(task));
     }
 
     async findDailyByUserId(userId: string) {
@@ -66,12 +41,12 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
         }
 
         const recurringTasks = await this.prisma.recurringTask.findMany({
-            where: { userId: user.id, frequency: "daily" },
-            include: { user: true },
-            orderBy: { createdAt: "desc" },
+            where: {userId: user.id, frequency: "daily"},
+            include: {user: true},
+            orderBy: {createdAt: "desc"},
         });
 
-        return recurringTasks.map((task) => this.mapRecurringTask(task));
+        return recurringTasks.map((task) => mapRecurringTask(task));
     }
 
     async findDueForReset(asOf: Date) {
@@ -81,26 +56,26 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
                     lte: asOf,
                 },
             },
-            include: { user: true },
+            include: {user: true},
             orderBy: {
                 nextResetAt: "asc",
             },
         });
 
-        return recurringTasks.map((task) => this.mapRecurringTask(task));
+        return recurringTasks.map((task) => mapRecurringTask(task));
     }
 
     async findById(recurringTaskId: string) {
         const recurringTask = await this.prisma.recurringTask.findUnique({
-            where: { id: recurringTaskId },
-            include: { user: true },
+            where: {id: recurringTaskId},
+            include: {user: true},
         });
 
         if (!recurringTask) {
             return null;
         }
 
-        return this.mapRecurringTask(recurringTask);
+        return mapRecurringTask(recurringTask);
     }
 
     async create(input: CreateRecurringTaskInput) {
@@ -112,10 +87,10 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
                 frequency: input.frequency,
                 nextResetAt: input.nextResetAt,
             },
-            include: { user: true },
+            include: {user: true},
         });
 
-        return this.mapRecurringTask(recurringTask);
+        return mapRecurringTask(recurringTask);
     }
 
     async update(input: UpdateRecurringTaskInput) {
@@ -136,55 +111,37 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
                 id: recurringTaskId,
             },
             data: {
-                ...(title !== undefined && { title }),
-                ...(description !== undefined && { description }),
-                ...(status !== undefined && { status }),
-                ...(frequency !== undefined && { frequency }),
-                ...(streakCount !== undefined && { streakCount }),
-                ...(lastCompletedAt !== undefined && { lastCompletedAt }),
-                ...(lastResetAt !== undefined && { lastResetAt }),
-                ...(nextResetAt !== undefined && { nextResetAt }),
+                ...(title !== undefined && {title}),
+                ...(description !== undefined && {description}),
+                ...(status !== undefined && {status}),
+                ...(frequency !== undefined && {frequency}),
+                ...(streakCount !== undefined && {streakCount}),
+                ...(lastCompletedAt !== undefined && {lastCompletedAt}),
+                ...(lastResetAt !== undefined && {lastResetAt}),
+                ...(nextResetAt !== undefined && {nextResetAt}),
             },
-            include: { user: true },
+            include: {user: true},
         });
 
-        return this.mapRecurringTask(recurringTask);
+        return mapRecurringTask(recurringTask);
     }
 
     async delete(recurringTaskId: string): Promise<void> {
         await this.prisma.recurringTask.delete({
-            where: { id: recurringTaskId },
+            where: {id: recurringTaskId},
         });
     }
 
     async getOrCreateProgress(userId: string) {
         const progress = await this.prisma.recurringTaskProgress.upsert({
-            where: { userId: userId },
-            create: { userId: userId },
+            where: {userId: userId},
+            create: {userId: userId},
             update: {},
-            include: { user: true },
+            include: {user: true},
         });
 
-        return this.mapRecurringTaskProgress(progress);
+        return mapRecurringTaskProgress(progress);
     }
-
-    // async updateProgress(userId: string, input: UpdateRecurringTaskProgressInput) {
-    //     const progress = await this.prisma.recurringTaskProgress.upsert({
-    //         where: { userId: input.userId },
-    //         create: {
-    //             userId: input.userId,
-    //             allTasksStreak: input.allTasksStreak,
-    //             lastCheckedAt: input.lastCheckedAt,
-    //         },
-    //         update: {
-    //             allTasksStreak: input.allTasksStreak,
-    //             lastCheckedAt: input.lastCheckedAt,
-    //         },
-    //         include: { user: true },
-    //     });
-    //
-    //     return this.mapRecurringTaskProgress(progress);
-    // }
 
     async resetDueRecurringTasks(input: {
         taskUpdates: UpdateRecurringTaskInput[];
@@ -193,7 +150,7 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
         return this.prisma.$transaction(async (tx) => {
             for (const progressUpdate of input.progressUpdates) {
                 const user = await tx.user.findUniqueOrThrow({
-                    where: { id: progressUpdate.userId },
+                    where: {id: progressUpdate.userId},
                 });
 
                 await tx.recurringTaskProgress.upsert({
@@ -245,37 +202,7 @@ export class PrismaRecurringTaskAdapter implements RecurringTaskPort {
 
     private async findUserByUserId(userId: string) {
         return this.prisma.user.findUnique({
-            where: { id: userId },
+            where: {id: userId},
         });
-    }
-
-    private mapRecurringTask(task: RecurringTaskRecord): RecurringTask {
-        return {
-            id: task.id,
-            title: task.title,
-            description: task.description,
-            status: task.status,
-            frequency: task.frequency,
-            streakCount: task.streakCount,
-            lastCompletedAt: task.lastCompletedAt,
-            lastResetAt: task.lastResetAt,
-            nextResetAt: task.nextResetAt,
-            userId: task.userId,
-            createdAt: task.createdAt,
-            updatedAt: task.updatedAt,
-        };
-    }
-
-    private mapRecurringTaskProgress(
-        progress: RecurringTaskProgressRecord,
-    ): RecurringTaskProgress {
-        return {
-            id: progress.id,
-            userId: progress.userId,
-            allTasksStreak: progress.allTasksStreak,
-            lastCheckedAt: progress.lastCheckedAt,
-            createdAt: progress.createdAt,
-            updatedAt: progress.updatedAt,
-        };
     }
 }

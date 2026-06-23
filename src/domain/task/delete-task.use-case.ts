@@ -11,7 +11,7 @@ export class DeleteTaskUseCase {
     async execute(input: DeleteTaskInput): Promise<void> {
         const task = await this.getTaskByIdActivity.execute({
             taskId: input.taskId,
-            email: input.email,
+            userId: input.userId,
         });
 
         if (!task) {

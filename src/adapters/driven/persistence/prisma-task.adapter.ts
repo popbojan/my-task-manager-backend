@@ -2,29 +2,14 @@ import type { PrismaClient } from "@prisma/client";
 import type { TaskPort } from "../../../domain/task/port/task.port.js";
 import type { CreateTaskInput } from "../../../domain/task/model/create-task-input";
 import type { UpdateTaskInput } from "../../../domain/task/model/udate-task-input";
-import type { Task } from "../../../domain/task/model/task";
-
-type TaskRecord = {
-    id: string;
-    title: string;
-    description: string | null;
-    status: Task["status"];
-    priority: Task["priority"];
-    deadline: Date | null;
-    userId: string;
-    createdAt: Date;
-    updatedAt: Date;
-    user: {
-        email: string;
-    };
-};
+import { mapTask } from "../mapper/task.mapper";
 
 export class PrismaTaskAdapter implements TaskPort {
     constructor(private readonly prisma: PrismaClient) {}
 
-    async findByEmail(email: string) {
+    async findByUserId(userId: string) {
         const user = await this.prisma.user.findUnique({
-            where: { email },
+            where: { id: userId },
         });
 
         if (!user) {
@@ -37,19 +22,14 @@ export class PrismaTaskAdapter implements TaskPort {
             orderBy: { createdAt: "desc" },
         });
 
-        return tasks.map((task) => this.mapTask(task));
+        return tasks.map((task) => mapTask(task));
     }
 
     async create(input: CreateTaskInput) {
-        const user = await this.prisma.user.upsert({
-            where: { email: input.email },
-            create: { email: input.email },
-            update: {},
-        });
 
         const task = await this.prisma.task.create({
             data: {
-                userId: user.id,
+                userId: input.userId,
                 title: input.title,
                 description: input.description,
                 status: input.status,
@@ -59,11 +39,11 @@ export class PrismaTaskAdapter implements TaskPort {
             include: { user: true },
         });
 
-        return this.mapTask(task);
+        return mapTask(task);
     }
 
     async update(input: UpdateTaskInput) {
-        const { taskId, email: _discardedOwnerEmail, ...data } = input;
+        const { taskId, userId: _discardedUserId, ...data } = input;
 
         const task = await this.prisma.task.update({
             where: {
@@ -73,7 +53,7 @@ export class PrismaTaskAdapter implements TaskPort {
             include: { user: true },
         });
 
-        return this.mapTask(task);
+        return mapTask(task);
     }
 
     async findById(taskId: string) {
@@ -88,7 +68,7 @@ export class PrismaTaskAdapter implements TaskPort {
             return null;
         }
 
-        return this.mapTask(task);
+        return mapTask(task);
     }
 
     async delete(taskId: string): Promise<void> {
@@ -97,19 +77,5 @@ export class PrismaTaskAdapter implements TaskPort {
                 id: taskId,
             },
         });
-    }
-
-    private mapTask(task: TaskRecord): Task {
-        return {
-            id: task.id,
-            title: task.title,
-            description: task.description,
-            status: task.status,
-            priority: task.priority,
-            deadline: task.deadline,
-            email: task.user.email,
-            createdAt: task.createdAt,
-            updatedAt: task.updatedAt,
-        };
     }
 }

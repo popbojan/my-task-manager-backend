@@ -2,7 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import type { operations } from "./types/api";
 import type { GetRecurringTasksUseCase } from "../../../domain/recurring-task/get-recurring-tasks.use-case";
 import type { GetRecurringTaskByIdUseCase } from "../../../domain/recurring-task/get-recurring-task-by-id.use-case";
-import type { GetAuthenticatedEmailUseCase } from "../../../domain/auth/get-authenticated-email.use-case";
+import type { GetAuthenticatedUserUseCase } from "../../../domain/auth/get-authenticated-user-use.case";
 import type { CreateRecurringTaskUseCase } from "../../../domain/recurring-task/create-recurring-task.use-case";
 import type { DeleteRecurringTaskUseCase } from "../../../domain/recurring-task/delete-recurring-task.use-case";
 import type { UpdateRecurringTaskUseCase } from "../../../domain/recurring-task/update-recurring-task.use-case";
@@ -29,7 +29,7 @@ type GetRecurringTaskProgressOp = operations["getRecurringTaskProgress"];
 
 export const recurringTaskRoutes: FastifyPluginAsync<{
     getRecurringTasksUseCase: GetRecurringTasksUseCase;
-    getAuthenticatedEmailUseCase: GetAuthenticatedEmailUseCase;
+    getAuthenticatedUserUseCase: GetAuthenticatedUserUseCase;
     createRecurringTaskUseCase: CreateRecurringTaskUseCase;
     updateRecurringTaskUseCase: UpdateRecurringTaskUseCase;
     getRecurringTaskByIdUseCase: GetRecurringTaskByIdUseCase;
@@ -39,7 +39,7 @@ export const recurringTaskRoutes: FastifyPluginAsync<{
 }> = async (fastify, opts) => {
     const {
         getRecurringTasksUseCase,
-        getAuthenticatedEmailUseCase,
+        getAuthenticatedUserUseCase,
         createRecurringTaskUseCase,
         updateRecurringTaskUseCase,
         getRecurringTaskByIdUseCase,
@@ -48,7 +48,7 @@ export const recurringTaskRoutes: FastifyPluginAsync<{
         openApiSpec,
     } = opts;
 
-    const authHook = buildAuthHook(getAuthenticatedEmailUseCase);
+    const authHook = buildAuthHook(getAuthenticatedUserUseCase);
     fastify.addHook("preHandler", authHook);
 
     fastify.setErrorHandler((error, request, reply) => {

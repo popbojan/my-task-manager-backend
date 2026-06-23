@@ -3,7 +3,7 @@ import type { CreateTaskInput } from "../model/create-task-input";
 import type { UpdateTaskInput } from "../model/udate-task-input";
 
 export interface TaskPort {
-    findByEmail(email: string): Promise<Task[]>;
+    findByUserId(userId: string): Promise<Task[]>;
     findById(taskId: string): Promise<Task | null>;
     create(input: CreateTaskInput): Promise<Task>;
     update(input: UpdateTaskInput): Promise<Task | null>;

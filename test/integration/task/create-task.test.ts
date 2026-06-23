@@ -2,12 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { setupIntegrationTestContext } from "../../setup/integration-test-context.js";
 import { createTestAccessToken } from "../../setup/test-token.js";
+import { ensureUser } from "../../setup/user-prisma-helper.js";
 
 const ctx = setupIntegrationTestContext();
 
 test("POST /tasks creates a task for authenticated user", async () => {
     const email = "test@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
 
     const response = await ctx.fastify.inject({
         method: "POST",
@@ -51,7 +53,8 @@ test("POST /tasks creates a task for authenticated user", async () => {
 
 test("POST /tasks creates a task with default status and priority", async () => {
     const email = "test@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
 
     const response = await ctx.fastify.inject({
         method: "POST",
@@ -77,7 +80,8 @@ test("POST /tasks creates a task with default status and priority", async () => 
 
 test("POST /tasks returns 400 when title is missing", async () => {
     const email = "test@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
 
     const response = await ctx.fastify.inject({
         method: "POST",
@@ -101,7 +105,8 @@ test("POST /tasks returns 400 when title is missing", async () => {
 
 test("POST /tasks returns 400 for invalid status", async () => {
     const email = "test@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
 
     const response = await ctx.fastify.inject({
         method: "POST",
@@ -125,7 +130,8 @@ test("POST /tasks returns 400 for invalid status", async () => {
 
 test("POST /tasks returns 400 for invalid priority", async () => {
     const email = "test@example.com";
-    const token = createTestAccessToken(email);
+    const user = await ensureUser(ctx.prisma, email);
+    const token = createTestAccessToken(user.id, user.email);
 
     const response = await ctx.fastify.inject({
         method: "POST",

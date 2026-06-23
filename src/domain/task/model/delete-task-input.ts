@@ -1,4 +1,4 @@
 export type DeleteTaskInput = {
     taskId: string;
-    email: string;
+    userId: string;
 };

@@ -8,7 +8,7 @@ export type Task = {
     status: TaskStatus;
     priority: TaskPriority;
     deadline: Date | null;
-    email: string;
+    userId: string;
     createdAt: Date;
     updatedAt: Date;
 };

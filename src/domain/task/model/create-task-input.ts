@@ -1,5 +1,5 @@
 export type CreateTaskInput = {
-    email: string;
+    userId: string;
     title: string;
     description: string | null;
     status: "todo" | "in_progress" | "review" | "done";

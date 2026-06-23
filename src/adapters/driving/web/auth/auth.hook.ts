@@ -1,7 +1,7 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { GetAuthenticatedEmailUseCase } from "../../../../domain/auth/get-authenticated-email.use-case.js";
+import type { GetAuthenticatedUserUseCase } from "../../../../domain/auth/get-authenticated-user-use.case";
 
-export function buildAuthHook(getAuthenticatedUserUseCase: GetAuthenticatedEmailUseCase) {
+export function buildAuthHook(getAuthenticatedUserUseCase: GetAuthenticatedUserUseCase) {
     return async function authHook(request: FastifyRequest, reply: FastifyReply) {
         const token = extractBearerToken(request.headers.authorization);
 

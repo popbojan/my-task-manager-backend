@@ -2,7 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import type { operations } from "./types/api";
 import type { GetTasksUseCase } from "../../../domain/task/get-tasks.use-case";
 import type { GetTaskByIdUseCase } from "../../../domain/task/get-task-by-id.use-case";
-import type { GetAuthenticatedEmailUseCase } from "../../../domain/auth/get-authenticated-email.use-case";
+import type { GetAuthenticatedUserUseCase } from "../../../domain/auth/get-authenticated-user-use.case";
 import type { CreateTaskUseCase } from "../../../domain/task/create-task.use-case";
 import type { DeleteTaskUseCase } from "../../../domain/task/delete-task.use-case";
 import {
@@ -26,7 +26,7 @@ type DeleteTaskOp = operations["deleteTask"];
 
 export const taskRoutes: FastifyPluginAsync<{
     getTaskUseCase: GetTasksUseCase;
-    getAuthenticatedEmailUseCase: GetAuthenticatedEmailUseCase;
+    getAuthenticatedUserUseCase: GetAuthenticatedUserUseCase;
     createTaskUseCase: CreateTaskUseCase;
     updateTaskUseCase: UpdateTaskUseCase;
     getTaskByIdUseCase: GetTaskByIdUseCase;
@@ -35,7 +35,7 @@ export const taskRoutes: FastifyPluginAsync<{
 }> = async (fastify, opts) => {
     const {
         getTaskUseCase,
-        getAuthenticatedEmailUseCase,
+        getAuthenticatedUserUseCase,
         createTaskUseCase,
         updateTaskUseCase,
         getTaskByIdUseCase,
@@ -43,7 +43,7 @@ export const taskRoutes: FastifyPluginAsync<{
         openApiSpec,
     } = opts;
 
-    const authHook = buildAuthHook(getAuthenticatedEmailUseCase);
+    const authHook = buildAuthHook(getAuthenticatedUserUseCase);
     fastify.addHook("preHandler", authHook);
 
     fastify.setErrorHandler((error, request, reply) => {
@@ -80,9 +80,9 @@ export const taskRoutes: FastifyPluginAsync<{
             | GetTasksOp["responses"][200]["content"]["application/json"]
             | GetTasksOp["responses"][401]["content"]["application/json"];
     }>("/tasks", async (request, reply) => {
-        const email = request.user.email;
+        const user = request.user;
 
-        const tasks = await getTaskUseCase.execute(email);
+        const tasks = await getTaskUseCase.execute(user.id);
 
         return reply.code(200).send(tasks.map(mapTaskToResponse));
     });
@@ -101,9 +101,9 @@ export const taskRoutes: FastifyPluginAsync<{
             },
         },
         async (request, reply) => {
-            const email = request.user.email;
+            const user = request.user;
 
-            const input = mapCreateTaskRequestToInput(email, request.body);
+            const input = mapCreateTaskRequestToInput(user.id, request.body);
             const task = await createTaskUseCase.execute(input);
 
             return reply.code(201).send(mapTaskToResponse(task));
@@ -127,9 +127,9 @@ export const taskRoutes: FastifyPluginAsync<{
             },
         },
         async (request, reply) => {
-            const email = request.user.email;
+            const user = request.user;
 
-            const input = mapUpdateTaskRequestToInput(request.params.taskId, email, request.body);
+            const input = mapUpdateTaskRequestToInput(request.params.taskId, user.id, request.body);
 
             const task = await updateTaskUseCase.execute(input);
 
@@ -154,9 +154,9 @@ export const taskRoutes: FastifyPluginAsync<{
         Params: GetTaskByIdOp["parameters"]["path"];
         Reply: GetTaskByIdReply;
     }>("/tasks/:taskId", async (request, reply) => {
-        const email = request.user.email;
+        const user = request.user;
 
-        const input = mapGetTaskByIdRequestToInput(request.params.taskId, email);
+        const input = mapGetTaskByIdRequestToInput(request.params.taskId, user.id);
 
         const task = await getTaskByIdUseCase.execute(input);
 
@@ -176,9 +176,9 @@ export const taskRoutes: FastifyPluginAsync<{
         Params: DeleteTaskOp["parameters"]["path"];
         Reply: DeleteTaskReply;
     }>("/tasks/:taskId", async (request, reply) => {
-        const email = request.user.email;
+        const user = request.user;
 
-        const input = mapDeleteTaskRequestToInput(request.params.taskId, email);
+        const input = mapDeleteTaskRequestToInput(request.params.taskId, user.id);
 
         await deleteTaskUseCase.execute(input);
 
