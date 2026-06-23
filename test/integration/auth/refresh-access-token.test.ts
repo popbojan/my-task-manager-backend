@@ -72,8 +72,13 @@ test("POST /auth/refresh returns new access token and rotates refresh cookie", a
     const body = response.json();
     const decoded = jwt.verify(body.accessToken, process.env.JWT_SECRET!, {
         algorithms: ["HS256"],
-    }) as { email?: string };
+    }) as { sub?: string; email?: string };
 
+    const user = await ctx.prisma.user.findUniqueOrThrow({
+        where: { email },
+    });
+
+    assert.equal(decoded.sub, user.id);
     assert.equal(decoded.email, email);
 
     const newRefresh = getSetCookieValue(response.headers["set-cookie"], "refreshToken");

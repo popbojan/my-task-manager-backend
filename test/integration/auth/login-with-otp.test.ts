@@ -29,8 +29,16 @@ test("POST /auth/login-with-otp returns access token and refresh cookie for vali
 
     const decoded = jwt.verify(body.accessToken, process.env.JWT_SECRET!, {
         algorithms: ["HS256"],
-    }) as { email?: string };
+    }) as { sub?: string; email?: string };
 
+    assert.equal(decoded.email, email);
+    assert.ok(typeof decoded.sub === "string" && decoded.sub.length > 0);
+
+    const user = await ctx.prisma.user.findUniqueOrThrow({
+        where: { email },
+    });
+
+    assert.equal(decoded.sub, user.id);
     assert.equal(decoded.email, email);
 
     const refresh = getSetCookieValue(response.headers["set-cookie"], "refreshToken");
