@@ -7,15 +7,16 @@ datasource db {
 }
 
 enum Language {
-  en
-  de
   sr
+  de
+  fr
+  en
 }
 
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  language  Language @default(en)
+  language  Language @default(de)
 
   tasks              Task[]
   recurringTasks     RecurringTask[]

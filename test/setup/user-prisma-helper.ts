@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { DEFAULT_TEST_LANGUAGE } from "./test-auth-payload.js";
 
-type TestLanguage = "en" | "de" | "sr";
+type TestLanguage = "sr" | "de" | "fr" | "en";
 
 export async function ensureUser(
     prisma: PrismaClient,

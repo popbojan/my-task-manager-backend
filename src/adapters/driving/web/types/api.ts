@@ -214,10 +214,11 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
+         * @default de
          * @example de
          * @enum {string}
          */
-        Language: "en" | "de" | "sr";
+        Language: "sr" | "de" | "fr" | "en";
         User: {
             /** Format: uuid */
             id: string;
